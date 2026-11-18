@@ -1,0 +1,1366 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>SupeRR Selector</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<script>
+  tailwind.config = {
+    theme: { extend: {
+      fontFamily: {
+        sans: ['Inter', 'system-ui', 'Segoe UI', 'Arial', 'sans-serif'],
+        mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace']
+      }
+    } }
+  };
+</script>
+<style>
+  /* Layout concept: a portfolio-style scroll with a glass nav, one section per topic and 3D glass cards over a soft aurora. */
+  :root { color-scheme: dark; --bg: #07080B; --panel: rgba(255, 255, 255, 0.045); --panel-2: rgba(255, 255, 255, 0.07); --line: rgba(255, 255, 255, 0.08); --line-2: rgba(255, 255, 255, 0.15); --fg: #F4F6FA; --fg-2: #AEB6C4; --fg-3: #747E8F; --pink: #FF1493; --pink-soft: rgba(255, 20, 147, 0.14); --royal: #2563EB; --royal-soft: rgba(37, 99, 235, 0.16); --cyan: #22D3EE; --cyan-soft: rgba(34, 211, 238, 0.13); --warn: #F5B544; --bad: #F0616D; --ok: #3DD68C; --font-sans: 'Inter', system-ui, 'Segoe UI', Arial, sans-serif; --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+  html { scroll-behavior: smooth; }
+  body { background: var(--bg); color: var(--fg); font-family: var(--font-sans); font-size: 14px; line-height: 1.55; -webkit-font-smoothing: antialiased; }
+  body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); background: var(--bg); z-index: 60; }
+  .wrap { position: relative; z-index: 1; max-width: 1180px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .mono { font-family: var(--font-mono); }
+  .tnum { font-variant-numeric: tabular-nums; }
+  .eyebrow { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--fg-3); }
+  h1, h2, h3 { text-wrap: balance; letter-spacing: -0.015em; }
+  /* top bar */
+  .topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 50; background: rgba(10, 11, 16, 0.55); backdrop-filter: blur(18px) saturate(150%); -webkit-backdrop-filter: blur(18px) saturate(150%); border-bottom: 1px solid rgba(255, 255, 255, 0.07); }
+  .dot { width: 8px; height: 8px; border-radius: 999px; background: var(--pink); position: relative; flex: none; }
+  .dot::after { content: ""; position: absolute; inset: 0; border-radius: 999px; background: var(--pink); animation: pulse 1.8s ease-out infinite; }
+  @keyframes pulse { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(3.2); opacity: 0; } }
+  .tag { font-family: var(--font-mono); font-size: 11px; line-height: 1; padding: 6px 9px; border: 1px solid var(--line-2); color: var(--fg-2); border-radius: 999px; white-space: nowrap; background: var(--panel); }
+  .tag.pink { border-color: rgba(255, 20, 147, .5); color: var(--pink); background: var(--pink-soft); }
+  /* panels and cards */
+  .panel { position: relative; overflow: hidden; background: linear-gradient(145deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.025)); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 18px; backdrop-filter: blur(22px) saturate(150%); -webkit-backdrop-filter: blur(22px) saturate(150%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.13), 0 24px 48px -24px rgba(0, 0, 0, 0.7); transition: border-color .2s, box-shadow .2s; }
+  .panel::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .25s; background: radial-gradient(340px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 20, 147, .07), transparent 65%); }
+  .panel:hover::before { opacity: 1; }
+  .panel-hd { padding: 14px 18px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .kpi { padding: 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+  .kpi-val { font-size: 34px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; font-family: var(--font-mono); }
+  .kpi-note { font-size: 12.5px; color: var(--fg-2); }
+  .meter { height: 4px; background: var(--line); border-radius: 2px; position: relative; overflow: hidden; }
+  .meter > i { position: absolute; inset: 0 auto 0 0; display: block; border-radius: 2px; }
+  .meter-lg { height: 8px; border-radius: 4px; }
+  .meter-lg > i { border-radius: 4px; }
+  /* tabs */
+  :focus-visible { outline: 2px solid var(--royal); outline-offset: 2px; border-radius: 3px; }
+  /* controls */
+  .chip { font-family: var(--font-mono); font-size: 11.5px; padding: 7px 11px; cursor: pointer; border: 1px solid var(--line-2); background: var(--panel); color: var(--fg-2); border-radius: 8px; transition: all .15s; }
+  .chip:hover { border-color: var(--fg-3); color: var(--fg); }
+  .chip[aria-pressed="true"] { background: var(--pink-soft); border-color: rgba(255, 20, 147, .55); color: var(--fg); }
+  .field { background: var(--panel-2); border: 1px solid var(--line-2); color: var(--fg); font-family: var(--font-mono); font-size: 12px; padding: 9px 11px; border-radius: 8px; min-width: 0; }
+  .field::placeholder { color: var(--fg-3); }
+  .field:focus { outline: 2px solid var(--royal); outline-offset: 0; border-color: var(--royal); }
+  /* table */
+  .tbl-wrap { overflow-x: auto; }
+  table.lb { width: 100%; border-collapse: collapse; min-width: 760px; }
+  table.lb th { text-align: left; font-family: var(--font-mono); font-size: 10.5px; letter-spacing: .12em; text-transform: uppercase; color: var(--fg-3); font-weight: 500; padding: 11px 14px; border-bottom: 1px solid var(--line); background: var(--panel-2); white-space: nowrap; }
+  table.lb th.num, table.lb td.num { text-align: right; }
+  table.lb td { padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+  table.lb tr.row { cursor: pointer; transition: background .12s; }
+  table.lb tr.row:hover td { background: var(--panel-2); }
+  table.lb tr.row[aria-expanded="true"] td { background: var(--panel-2); }
+  table.lb tr.detail td { background: rgba(0, 0, 0, 0.28); padding: 0; }
+  .rank { font-family: var(--font-mono); font-weight: 700; font-size: 15px; }
+  .rank-sub { font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); white-space: nowrap; }
+  .rank.r1 { color: var(--pink); }
+  table.lb tr.row:hover td:first-child { box-shadow: inset 2px 0 0 var(--pink); }
+  table.lb.compact td { padding-top: 6px; padding-bottom: 6px; }
+  table.lb.compact .av { width: 26px; height: 26px; font-size: 10px; }
+  .role { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 11px; padding: 4px 8px; border-radius: 3px; white-space: nowrap; }
+  .role::before { content: ""; width: 6px; height: 6px; border-radius: 2px; background: currentColor; }
+  .role.T { color: var(--pink); background: var(--pink-soft); }
+  .role.M { color: #6C97F5; background: var(--royal-soft); }
+  .role.F { color: var(--cyan); background: var(--cyan-soft); }
+  .lo-cell { display: flex; align-items: center; justify-content: flex-end; gap: 10px; }
+  .lo-bar { width: 72px; height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; flex: none; }
+  .lo-bar > i { display: block; height: 100%; background: var(--pink); }
+  .pending { font-family: var(--font-mono); font-size: 10.5px; color: var(--warn); border: 1px dashed rgba(245, 181, 68, .5); padding: 3px 7px; border-radius: 3px; }
+  /* dumbbell chart */
+  .dumb-row { display: grid; grid-template-columns: 150px 1fr; gap: 12px; align-items: center; padding: 5px 0; }
+  .dumb-name { font-size: 12px; color: var(--fg-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .dumb-track { position: relative; height: 18px; }
+  .dumb-track::before { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 1px; background: var(--line); }
+  .dumb-seg { position: absolute; top: 7px; height: 3px; background: linear-gradient(90deg, var(--royal), var(--pink)); border-radius: 2px; }
+  .dumb-pt { position: absolute; top: 3px; width: 12px; height: 12px; margin-left: -6px; border-radius: 999px; border: 2px solid var(--bg); }
+  .dumb-pt.p { background: var(--pink); }
+  .dumb-pt.l { background: var(--royal); }
+  .axis { display: grid; grid-template-columns: 150px 1fr; gap: 12px; }
+  .axis-in { position: relative; height: 16px; border-top: 1px solid var(--line-2); margin-top: 6px; }
+  .axis-in span { position: absolute; top: 4px; font-family: var(--font-mono); font-size: 10px; color: var(--fg-3); transform: translateX(-50%); }
+  .dumb-gridline { position: absolute; top: 0; bottom: 0; width: 1px; background: var(--line); }
+  /* model tab */
+  .stage { flex: 1 1 150px; text-align: left; padding: 12px 14px; cursor: pointer; min-width: 0; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; color: var(--fg-2); transition: all .15s; }
+  .stage:hover { border-color: var(--line-2); color: var(--fg); }
+  .stage[aria-selected="true"] { border-color: rgba(255, 20, 147, .6); background: var(--pink-soft); color: var(--fg); }
+  .stage .n { font-family: var(--font-mono); font-size: 10.5px; color: var(--pink); display: block; margin-bottom: 4px; }
+  .stage .t { font-size: 13px; font-weight: 600; display: block; }
+  .check { display: flex; gap: 12px; padding: 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); }
+  .check .ic { flex: none; width: 22px; height: 22px; border-radius: 4px; background: var(--pink-soft); color: var(--pink); display: grid; place-items: center; font-family: var(--font-mono); font-size: 12px; font-weight: 700; }
+  .seg-btn { display: inline-flex; border: 1px solid var(--line-2); border-radius: 12px; overflow: hidden; }
+  .seg-btn button { font-family: var(--font-mono); font-size: 12px; padding: 8px 14px; background: var(--panel); color: var(--fg-3); border: 0; cursor: pointer; }
+  .seg-btn button + button { border-left: 1px solid var(--line-2); }
+  .seg-btn button[aria-pressed="true"] { background: var(--pink-soft); color: var(--fg); }
+  .formula { font-family: var(--font-mono); font-size: 18px; padding: 16px 18px; border: 1px solid var(--line-2); border-radius: 12px; background: var(--panel-2); overflow-x: auto; white-space: nowrap; }
+  .formula b { color: var(--pink); font-weight: 700; }
+  .formula em { color: #6C97F5; font-style: normal; font-weight: 700; }
+  .verdict { font-family: var(--font-mono); font-size: 10.5px; padding: 3px 7px; border-radius: 3px; white-space: nowrap; }
+  .verdict.warn { color: var(--warn); background: rgba(245, 181, 68, .12); }
+  .verdict.bad { color: var(--bad); background: rgba(240, 97, 109, .12); }
+  /* roadmap */
+  .swap { display: grid; grid-template-columns: 1fr auto 1fr; gap: 14px; align-items: stretch; }
+  .arrow { display: grid; place-items: center; color: var(--pink); font-family: var(--font-mono); font-size: 22px; }
+  .todo { display: flex; gap: 12px; align-items: flex-start; padding: 14px; width: 100%; text-align: left; background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px; color: var(--fg); cursor: pointer; }
+  .todo:hover { border-color: var(--line-2); }
+  .todo .box { flex: none; width: 18px; height: 18px; border: 1px solid var(--line-2); border-radius: 3px; display: grid; place-items: center; margin-top: 2px; font-size: 12px; color: transparent; }
+  .todo[aria-pressed="true"] .box { background: var(--pink); border-color: var(--pink); color: #fff; }
+  .todo[aria-pressed="true"] .tt { color: var(--fg-3); text-decoration: line-through; text-decoration-color: var(--line-2); }
+  [hidden] { display: none !important; }
+  /* aurora, nav, sections, tilt */
+  .aurora { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+  .aurora i { position: absolute; border-radius: 50%; filter: blur(90px); opacity: .55; animation: drift 28s ease-in-out infinite alternate; }
+  .aurora i:nth-child(1) { width: 560px; height: 560px; left: -140px; top: -100px; background: radial-gradient(circle, rgba(255, 20, 147, .5), transparent 70%); }
+  .aurora i:nth-child(2) { width: 640px; height: 640px; right: -180px; top: 22%; background: radial-gradient(circle, rgba(37, 99, 235, .55), transparent 70%); animation-delay: -9s; }
+  .aurora i:nth-child(3) { width: 520px; height: 520px; left: 28%; bottom: -220px; background: radial-gradient(circle, rgba(34, 211, 238, .22), transparent 70%); animation-delay: -16s; }
+  @keyframes drift { to { transform: translate3d(70px, 50px, 0) scale(1.12); } }
+  .nav-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 10px; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; color: var(--fg); text-decoration: none; white-space: nowrap; }
+  .nav { display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; }
+  .nav::-webkit-scrollbar { display: none; }
+  .nav a { font-size: 13px; color: var(--fg-2); padding: 8px 14px; border-radius: 999px; text-decoration: none; white-space: nowrap; transition: color .15s, background .15s; }
+  .nav a:hover { color: #fff; background: rgba(255, 255, 255, 0.07); }
+  .nav a[aria-current="true"] { color: #fff; background: rgba(255, 255, 255, 0.11); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.14); }
+  .section { padding-block: 64px; scroll-margin-top: 64px; }
+  .hero { padding-top: 48px; }
+  .sec-hd { margin-bottom: 28px; max-width: 660px; }
+  .sec-hd .eyebrow::before { content: ""; display: inline-block; width: 18px; height: 1px; background: var(--pink); margin-right: 10px; vertical-align: middle; }
+  .sec-title { font-size: clamp(28px, 4vw, 42px); font-weight: 700; letter-spacing: -0.025em; line-height: 1.1; margin-top: 10px; }
+  .sec-sub { margin-top: 12px; color: var(--fg-2); max-width: 60ch; font-size: 15px; }
+  .dl { display: grid; gap: 0; }
+  .dl div { display: flex; justify-content: space-between; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--line); }
+  .dl div:last-child { border-bottom: 0; }
+  .dl dt { color: var(--fg-2); }
+  .dl dd { font-family: var(--font-mono); font-weight: 600; }
+  .kpi, .pod, [data-pick], .check { transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)); transition: transform .18s ease-out, border-color .2s, box-shadow .2s; will-change: transform; }
+  .kpi:hover, .pod:hover, [data-pick]:hover { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 32px 60px -24px rgba(255, 20, 147, .3); }
+  @media (max-width: 860px) { .nav-row { flex-wrap: wrap; } .nav { order: 3; width: 100%; } .section { padding-block: 44px; } }
+  @media (prefers-reduced-motion: reduce) { .aurora i { animation: none; } .kpi, .pod, [data-pick], .check { transform: none; } }
+  /* hero, podium, avatars, motion */
+  #progress { position: fixed; left: 0; right: 0; top: env(safe-area-inset-top, 0px); height: 2px; z-index: 70; transform-origin: 0 0; transform: scaleX(0); background: linear-gradient(90deg, var(--pink), var(--royal)); }
+  .grad { background: linear-gradient(90deg, var(--pink), var(--royal)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .btn { font-family: var(--font-mono); font-size: 12px; padding: 10px 14px; border: 1px solid var(--line-2); border-radius: 10px; background: var(--panel); color: var(--fg); cursor: pointer; transition: border-color .15s, filter .15s, transform .15s; }
+  .btn:hover { border-color: var(--fg-3); transform: translateY(-1px); }
+  .btn.primary { background: var(--pink); border-color: var(--pink); color: #fff; font-weight: 700; }
+  .btn.primary:hover { filter: brightness(1.12); }
+  kbd { font-family: var(--font-mono); font-size: 10px; border: 1px solid var(--line-2); border-radius: 3px; padding: 1px 5px; margin-left: 6px; color: var(--fg-2); }
+  .av { width: 34px; height: 34px; border-radius: 6px; display: grid; place-items: center; font-family: var(--font-mono); font-size: 12px; font-weight: 700; flex: none; }
+  .av.big { width: 48px; height: 48px; font-size: 15px; }
+  .av.T { color: var(--pink); background: var(--pink-soft); }
+  .av.M { color: #6C97F5; background: var(--royal-soft); }
+  .av.F { color: var(--cyan); background: var(--cyan-soft); }
+  .av.B { color: var(--fg-2); background: var(--line); }
+  .pod { display: flex; flex-direction: column; gap: 14px; padding: 18px; text-align: left; cursor: pointer; color: var(--fg); transition: transform .2s, border-color .2s; }
+  .pod:hover { border-color: var(--line-2); }
+  .pod.first { border-color: rgba(255, 20, 147, .5); box-shadow: 0 14px 44px -14px rgba(255, 20, 147, .4); }
+  @media (min-width: 640px) { .pod.first { order: 2; translate: 0 -8px; } .pod.second { order: 1; } .pod.third { order: 3; } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+  /* compare, lab, palette, toast */
+  input[type="range"] { width: 100%; accent-color: var(--pink); }
+  .cmp-row { display: grid; grid-template-columns: 1fr 130px 1fr; gap: 14px; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--line); }
+  .cmp-side { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+  .cmp-side.r { text-align: right; }
+  .cmp-side .v { font-family: var(--font-mono); font-size: 15px; font-weight: 700; color: var(--fg-2); }
+  .cmp-side.win .v { color: var(--pink); }
+  .cmp-bar { height: 5px; background: var(--line); border-radius: 3px; overflow: hidden; display: block; }
+  .cmp-bar > i { display: block; height: 100%; background: var(--fg-3); }
+  .cmp-side.win .cmp-bar > i { background: var(--pink); }
+  .cmp-side.r .cmp-bar > i { margin-left: auto; }
+  .readout { padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--panel-2); }
+  .readout b { display: block; font-family: var(--font-mono); font-size: 20px; margin-top: 2px; }
+  .pal-back { position: fixed; inset: 0; z-index: 100; background: rgba(3, 4, 6, .72); backdrop-filter: blur(3px); padding: calc(10vh + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) 16px max(16px, env(safe-area-inset-left, 0px)); }
+  .pal-box { max-width: 560px; margin: 0 auto; background: rgba(16, 18, 26, 0.92); backdrop-filter: blur(24px); border: 1px solid var(--line-2); border-radius: 8px; overflow: hidden; box-shadow: 0 24px 80px rgba(0, 0, 0, .6); }
+  #pal-q { width: 100%; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; padding: 14px 16px; font-size: 14px; }
+  #pal-list { list-style: none; margin: 0; padding: 6px; max-height: 50vh; overflow-y: auto; }
+  .pal-item { display: flex; justify-content: space-between; gap: 12px; padding: 10px 12px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+  .pal-item[aria-selected="true"] { background: var(--pink-soft); }
+  .pal-item small { font-family: var(--font-mono); color: var(--fg-3); font-size: 11px; white-space: nowrap; }
+  .pal-ft { padding: 9px 16px; border-top: 1px solid var(--line); font-family: var(--font-mono); font-size: 10.5px; color: var(--fg-3); }
+  #toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(18px + env(safe-area-inset-bottom, 0px)); z-index: 110; font-family: var(--font-mono); font-size: 12px; padding: 10px 14px; background: #151720; border: 1px solid var(--pink); border-radius: 10px; }
+  @media (max-width: 760px) {
+    .cmp-row { grid-template-columns: 1fr 78px 1fr; gap: 8px; }
+    .swap { grid-template-columns: 1fr; }
+    .arrow { transform: rotate(90deg); padding: 2px 0; }
+    .dumb-row, .axis { grid-template-columns: 96px 1fr; gap: 8px; }
+    .kpi-val { font-size: 28px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dot::after { animation: none; }
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
+  }
+</style>
+<div id="progress" aria-hidden="true"></div>
+<div class="aurora" aria-hidden="true"><i></i><i></i><i></i></div>
+<header class="topbar">
+  <div class="wrap nav-row">
+    <a class="brand" href="#home"><span class="dot" aria-hidden="true"></span>SupeRR Selector<span class="mono text-[11px] hidden md:inline" style="color: var(--fg-3); font-weight: 400">RR Analytics</span></a>
+    <nav class="nav" id="nav" aria-label="Sections">
+      <a href="#home" data-s="home">Home</a>
+      <a href="#overview" data-s="overview">Overview</a>
+      <a href="#batters" data-s="batters">Batters</a>
+      <a href="#bowlers" data-s="bowlers">Bowlers</a>
+      <a href="#method" data-s="method">Method</a>
+      <a href="#roadmap" data-s="roadmap">Roadmap</a>
+    </nav>
+    <div class="flex items-center gap-2">
+      <span class="tag hidden lg:inline-block">Season 2</span>
+      <button type="button" class="tag" id="open-pal" style="cursor: pointer">Search · Ctrl K</button>
+    </div>
+  </div>
+</header>
+<main class="wrap pb-10">
+  <section id="home" class="section hero grid gap-8 lg:grid-cols-5 items-stretch">
+    <div class="lg:col-span-2 flex flex-col justify-center min-w-0 py-2">
+      <p class="eyebrow mb-4 flex items-center gap-2"><span style="width: 18px; height: 1px; background: var(--pink); display: inline-block"></span>Rajasthan Royals Analytics Department</p>
+      <h1 class="text-4xl sm:text-5xl font-bold" style="line-height: 1.04">T20 <span class="grad">Pressure</span> Evaluation Pipeline</h1>
+      <p class="mt-5 max-w-xl" style="color: var(--fg-2)">
+        Player selection built on how a delivery moves the match, not how the scorecard looks. Rankings use the
+        bootstrapped 10th-percentile floor (<span class="mono" style="color: var(--fg)">lo10</span>), so a player has to be
+        consistently good to rank high, not lucky once.
+      </p>
+      <div class="flex flex-wrap gap-2 mt-6">
+        <button type="button" class="btn primary" id="cta-lb">View leaderboard</button>
+        <button type="button" class="btn" id="cta-lab">Open bootstrap lab</button>
+        <button type="button" class="btn" id="cta-pal">Search<kbd>/</kbd></button>
+      </div>
+    </div>
+    <div class="panel lg:col-span-3 min-w-0">
+      <div class="panel-hd">
+        <p class="eyebrow">Pressure trace · illustrative match</p>
+        <div class="flex items-center gap-3 flex-wrap">
+          <span class="mono text-[11.5px]" id="tr-read" style="color: var(--fg-2)">Hover the trace to inspect a delivery</span>
+          <button type="button" class="chip" id="tr-replay">Replay</button>
+        </div>
+      </div>
+      <div class="p-3"><canvas id="tr-cv" style="width: 100%; height: 250px; display: block; touch-action: pan-y" role="img" aria-label="Illustrative win probability over 120 deliveries. The 20 percent of balls that swing it most are marked in pink."></canvas></div>
+      <p class="mono text-[10.5px] px-[18px] pb-3" style="color: var(--fg-3)">Synthetic data. Pink balls are the top 20% of this trace by win-probability swing, the same rule as LI ≥ 0.0258. Bars show each ball's swing.</p>
+    </div>
+  </section>
+  <section id="overview" class="section">
+    <div class="sec-hd">
+      <p class="eyebrow">01 · Overview</p>
+      <h2 class="sec-title">Selection under pressure</h2>
+      <p class="sec-sub">A pipeline that measures how each delivery moves the match, then rates players on a floor they can be trusted to clear.</p>
+    </div>
+    <div class="grid gap-4 lg:grid-cols-3 mb-4">
+      <article class="panel p-6 lg:col-span-2">
+        <h3 class="text-lg font-semibold mb-2">What SupeRR Selector does</h3>
+        <p style="color: var(--fg-2); max-width: 62ch">
+          SupeRR Selector is the Rajasthan Royals Analytics Department's player evaluation pipeline for Season 2. It scores every
+          delivery by how much it can swing the match, then rates players with a regression that separates baseline talent from
+          the response to pressure.
+        </p>
+        <div class="grid gap-3 sm:grid-cols-3 mt-5">
+          <div class="check"><span class="ic">1</span><div><h4 class="font-semibold text-[13.5px]">Measure pressure</h4><p class="text-[12.5px]" style="color: var(--fg-2)">Win probability and a leverage index mark the top 20% of deliveries, LI ≥ 0.0258.</p></div></div>
+          <div class="check"><span class="ic">2</span><div><h4 class="font-semibold text-[13.5px]">Rank on the floor</h4><p class="text-[12.5px]" style="color: var(--fg-2)">Players are ordered by lo10, the 10th percentile of 200 bootstrap replicates.</p></div></div>
+          <div class="check"><span class="ic">3</span><div><h4 class="font-semibold text-[13.5px]">Compare like with like</h4><p class="text-[12.5px]" style="color: var(--fg-2)">Batters are ranked inside role pools: top order, middle order and finishers.</p></div></div>
+        </div>
+      </article>
+      <article class="panel p-6">
+        <h3 class="text-lg font-semibold mb-2">Corpus</h3>
+        <dl class="dl text-[13.5px]">
+          <div><dt>Matches</dt><dd>790</dd></div>
+          <div><dt>Balls</dt><dd>180,008</dd></div>
+          <div><dt>WP model training</dt><dd>50,000+</dd></div>
+          <div><dt>Bootstrap replicates</dt><dd>200</dd></div>
+          <div><dt>Ranking key</dt><dd style="color: var(--pink)">lo10</dd></div>
+        </dl>
+      </article>
+    </div>
+    <div class="grid gap-3 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4" aria-label="Headline metrics">
+    <article class="panel kpi">
+      <span class="eyebrow">Out-of-time log loss</span>
+      <div class="flex items-baseline gap-3 flex-wrap">
+        <span class="kpi-val"><span data-count="0.531" data-dec="3">0.531</span></span>
+        <span class="mono text-[12px]" style="color: var(--ok)">▲ 23% vs. coin flip</span>
+      </div>
+      <div>
+        <div class="meter meter-lg" role="img" aria-label="0.531 against a coin-flip baseline of 0.693">
+          <i style="width: 76.6%; background: var(--pink)"></i>
+        </div>
+        <div class="flex justify-between mono text-[10px] mt-1" style="color: var(--fg-3)"><span>0</span><span>coin flip 0.693</span></div>
+      </div>
+      <p class="kpi-note">Well calibrated, so LI reads as a true expected swing.</p>
+    </article>
+    <article class="panel kpi">
+      <span class="eyebrow">Leverage threshold</span>
+      <div class="flex items-baseline gap-3 flex-wrap">
+        <span class="kpi-val">≥ <span data-count="0.0258" data-dec="4">0.0258</span></span>
+      </div>
+      <div>
+        <div class="flex gap-[3px]" role="img" aria-label="Top 20 percent of deliveries">
+          <span class="meter meter-lg" style="flex: 8"><i style="width: 100%; background: var(--line-2)"></i></span>
+          <span class="meter meter-lg" style="flex: 2"><i style="width: 100%; background: var(--pink)"></i></span>
+        </div>
+        <div class="flex justify-between mono text-[10px] mt-1" style="color: var(--fg-3)"><span>80% of balls</span><span style="color: var(--pink)">top 20%</span></div>
+      </div>
+      <p class="kpi-note">LI at or above 0.0258 means a ball moves win probability by 2.58 points or more.</p>
+    </article>
+    <article class="panel kpi">
+      <span class="eyebrow">Clutch slope (c) reliability</span>
+      <div class="flex items-baseline gap-3 flex-wrap">
+        <span class="kpi-val">r = <span data-count="0.10" data-dec="2">0.10</span></span>
+      </div>
+      <div>
+        <div class="meter meter-lg" role="img" aria-label="r of 0.10 against a 0.40 threshold">
+          <i style="width: 25%; background: var(--bad)"></i>
+        </div>
+        <div class="flex justify-between mono text-[10px] mt-1" style="color: var(--fg-3)"><span>0</span><span>threshold 0.40</span></div>
+      </div>
+      <p class="kpi-note">Null finding: noise, not skill.</p>
+    </article>
+    <article class="panel kpi">
+      <span class="eyebrow">Bootstrap replicates</span>
+      <div class="flex items-baseline gap-3 flex-wrap">
+        <span class="kpi-val"><span data-count="200" data-dec="0">200</span>×</span>
+      </div>
+      <div id="rep-grid" class="flex items-end gap-[3px]" style="height: 34px" role="img" aria-label="Distribution of 200 replicates with the lowest 10 percent highlighted"></div>
+      <p class="kpi-note">Resampled by match. Ranking uses the conservative floor, lo10.</p>
+    </article>
+  </div>
+</section>
+<section id="batters" class="section">
+  <div class="sec-hd">
+    <p class="eyebrow">02 · Batters</p>
+    <h2 class="sec-title">Top batters by pressure floor</h2>
+    <p class="sec-sub">Batters are ranked inside role pools. Select a row for detail, compare two players, or copy the table.</p>
+  </div>
+      <p class="eyebrow mb-3">Top three by lo10 floor</p>
+      <div class="grid gap-3 grid-cols-1 sm:grid-cols-3 mb-6 sm:pt-2" id="podium"></div>
+      <div class="grid gap-3 grid-cols-1 sm:grid-cols-3 mb-4" id="role-summary"></div>
+      <div class="panel">
+        <div class="panel-hd">
+          <div>
+            <h2 class="text-base font-semibold">Role-segmented batting leaderboard</h2>
+            <p class="text-[12.5px]" style="color: var(--fg-3)">Run-based EPA over-penalizes top-order dismissals, so each role is its own pool. Select a row for detail.</p>
+          </div>
+          <span class="mono text-[11px]" style="color: var(--fg-3)" id="bat-count"></span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 px-[18px] py-3" style="border-bottom: 1px solid var(--line)">
+          <div class="flex flex-wrap gap-2" role="group" aria-label="Filter by role" id="role-filter">
+            <button class="chip" data-role="ALL" aria-pressed="true">All roles</button>
+            <button class="chip" data-role="T" aria-pressed="false">Top Order 1-3</button>
+            <button class="chip" data-role="M" aria-pressed="false">Middle 4-5</button>
+            <button class="chip" data-role="F" aria-pressed="false">Finishers 6-7</button>
+          </div>
+          <div class="flex flex-wrap gap-2 ml-auto w-full sm:w-auto">
+            <label class="sr-only" for="bat-search">Search batters</label>
+            <input id="bat-search" class="field flex-1 sm:w-44" type="search" placeholder="Search player" autocomplete="off">
+            <label class="sr-only" for="bat-sort">Sort by</label>
+            <select id="bat-sort" class="field">
+              <option value="lo">Sort: lo10 floor</option>
+              <option value="p">Sort: rating P</option>
+              <option value="n">Sort: sample n</option>
+              <option value="gap">Sort: floor gap</option>
+            </select>
+            <button type="button" class="chip" id="bat-dens" aria-pressed="false">Compact</button>
+            <button type="button" class="chip" id="bat-copy">Copy CSV</button>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="lb" id="bat-table" aria-describedby="bat-count">
+            <thead>
+              <tr>
+                <th style="width: 110px">Rank</th>
+                <th>Player</th>
+                <th>Role tier</th>
+                <th class="num">Rating (P)</th>
+                <th class="num">Lower floor (lo10)</th>
+                <th class="num">Sample (n)</th>
+                <th class="num">Compare</th>
+              </tr>
+            </thead>
+            <tbody id="bat-body"></tbody>
+          </table>
+        </div>
+        <p id="bat-empty" class="p-6 text-center mono text-[12px]" style="color: var(--fg-3)" hidden>No batters match this filter.</p>
+      </div>
+      <div class="panel mt-4">
+        <div class="panel-hd">
+          <div>
+            <h2 class="text-base font-semibold">Head to head</h2>
+            <p class="text-[12.5px]" style="color: var(--fg-3)">Choose two batters with the compare buttons in the table.</p>
+          </div>
+          <button type="button" class="chip" id="cmp-clear" hidden>Clear</button>
+        </div>
+        <div class="px-[18px] py-4" id="cmp-body" aria-live="polite"></div>
+      </div>
+      <div class="panel mt-4">
+        <div class="panel-hd">
+          <div>
+            <h2 class="text-base font-semibold">Rating versus floor</h2>
+            <p class="text-[12.5px]" style="color: var(--fg-3)">Each bar runs from lo10 to P. A longer bar means more uncertainty about the player's true level.</p>
+          </div>
+          <div class="flex items-center gap-4 mono text-[11px]" style="color: var(--fg-2)">
+            <span class="inline-flex items-center gap-2"><i class="dumb-pt l" style="position: static; margin: 0"></i>lo10</span>
+            <span class="inline-flex items-center gap-2"><i class="dumb-pt p" style="position: static; margin: 0"></i>P</span>
+          </div>
+        </div>
+        <div class="px-[18px] py-4">
+          <div id="dumbbell"></div>
+          <div class="axis"><span></span><div class="axis-in" id="axis"></div></div>
+        </div>
+      </div>
+</section>
+<section id="bowlers" class="section">
+  <div class="sec-hd">
+    <p class="eyebrow">03 · Bowlers</p>
+    <h2 class="sec-title">Top bowlers by pressure floor</h2>
+    <p class="sec-sub">Ranked on the same floor metric. Use it as a shortlist, because bowler ratings are far less stable than batter ratings.</p>
+  </div>
+      <div class="panel mb-4" style="border-color: rgba(245, 181, 68, .35)">
+        <div class="p-4 flex gap-3 items-start">
+          <span class="verdict warn mono">READ FIRST</span>
+          <p class="text-[13px]" style="color: var(--fg-2)">
+            Bowler P reliability is <b class="mono" style="color: var(--bad)">r = 0.16</b>, far below the 0.40 threshold, and bowler clutch slope is
+            <b class="mono" style="color: var(--bad)">r = 0.04</b>. Treat this list as a shortlist for scouting, and weigh rank gaps lightly.
+          </p>
+        </div>
+      </div>
+      <p class="eyebrow mb-3">Top three by lo10 floor</p>
+      <div class="grid gap-3 grid-cols-1 sm:grid-cols-3 mb-6 sm:pt-2" id="bowl-podium"></div>
+      <div class="panel">
+        <div class="panel-hd">
+          <div>
+            <h2 class="text-base font-semibold">Bowling pressure leaderboard</h2>
+            <p class="text-[12.5px]" style="color: var(--fg-3)">Ranked by bootstrapped 10th-percentile floor (lo10).</p>
+          </div>
+          <div class="flex gap-2 w-full sm:w-auto">
+            <label class="sr-only" for="bowl-search">Search bowlers</label>
+            <input id="bowl-search" class="field flex-1 sm:w-48" type="search" placeholder="Search bowler" autocomplete="off">
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="lb">
+            <thead>
+              <tr>
+                <th style="width: 110px">Rank</th>
+                <th>Bowler</th>
+                <th>Profile</th>
+                <th class="num">Rating (P)</th>
+                <th class="num">Lower floor (lo10)</th>
+                <th class="num">Sample (n)</th>
+              </tr>
+            </thead>
+            <tbody id="bowl-body"></tbody>
+          </table>
+        </div>
+        <p id="bowl-empty" class="p-6 text-center mono text-[12px]" style="color: var(--fg-3)" hidden>No bowlers match this search.</p>
+      </div>
+      <p class="mono text-[11px] mt-3" style="color: var(--fg-3)">
+        // The source deck publishes bowler order and profile only. Add P, lo10 and n to BOWLER_STATS in the script and they appear here.
+      </p>
+</section>
+<section id="method" class="section">
+  <div class="sec-hd">
+    <p class="eyebrow">04 · Method</p>
+    <h2 class="sec-title">How a ball becomes a rating</h2>
+    <p class="sec-sub">From cleaned deliveries to a win probability model, a leverage tier, a crossed ridge fit and a bootstrap floor.</p>
+  </div>
+      <div class="panel mb-4">
+        <div class="panel-hd">
+          <div>
+            <h2 class="text-base font-semibold">Pipeline walkthrough</h2>
+            <p class="text-[12.5px]" style="color: var(--fg-3)">Select a stage to see what it does and why it is there.</p>
+          </div>
+        </div>
+        <div class="p-[18px]">
+          <div class="flex flex-wrap gap-2" role="tablist" aria-label="Pipeline stages" id="stages"></div>
+          <div class="mt-4 p-5 rounded-md" style="background: var(--panel-2); border: 1px solid var(--line)" id="stage-detail" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="grid gap-4 lg:grid-cols-2 mb-4">
+        <article class="panel">
+          <div class="panel-hd"><h2 class="text-base font-semibold">Pre-ball gradient-boosted win probability</h2><span class="tag">WP model</span></div>
+          <div class="p-[18px] flex flex-col gap-4">
+            <p style="color: var(--fg-2)">
+              A LightGBM classifier reads the match state before each delivery and returns the batting side's win probability.
+              Leverage Index (LI) is the expected swing in that probability from the ball about to be bowled.
+            </p>
+            <div>
+              <div class="flex justify-between mono text-[11px] mb-2" style="color: var(--fg-3)"><span>Out-of-time log loss</span><span>lower is better</span></div>
+              <div class="flex flex-col gap-2">
+                <div class="flex items-center gap-3"><span class="mono text-[11px] w-20" style="color: var(--fg-2)">Coin flip</span><div class="meter meter-lg flex-1"><i style="width: 100%; background: var(--line-2)"></i></div><span class="mono text-[12px] w-12 text-right">0.693</span></div>
+                <div class="flex items-center gap-3"><span class="mono text-[11px] w-20" style="color: var(--fg)">This model</span><div class="meter meter-lg flex-1"><i style="width: 76.6%; background: var(--pink)"></i></div><span class="mono text-[12px] w-12 text-right" style="color: var(--pink)">0.531</span></div>
+              </div>
+            </div>
+            <ul class="grid gap-2 mono text-[12px]" style="color: var(--fg-2)">
+              <li>• Trained on 50,000+ deliveries</li>
+              <li>• Pressure tier: top 20% of deliveries, LI ≥ 0.0258</li>
+              <li>• Calibrated, so a 0.0258 LI is a 2.58 point expected swing</li>
+            </ul>
+          </div>
+        </article>
+        <article class="panel">
+          <div class="panel-hd"><h2 class="text-base font-semibold">Data hygiene</h2><span class="tag">3 fixes</span></div>
+          <div class="p-[18px] flex flex-col gap-3">
+            <div class="check"><span class="ic">1</span><div><h3 class="font-semibold text-[13.5px]">len1 leak fix</h3><p class="text-[13px]" style="color: var(--fg-2)">A strict pre-ball feature cutoff. Nothing that is only known after the delivery can enter the model.</p></div></div>
+            <div class="check"><span class="ic">2</span><div><h3 class="font-semibold text-[13.5px]">Super Overs removed</h3><p class="text-[13px]" style="color: var(--fg-2)">Tie-break dynamics distort LI, so those deliveries are dropped from training and scoring.</p></div></div>
+            <div class="check"><span class="ic">3</span><div><h3 class="font-semibold text-[13.5px]">DLS targets removed</h3><p class="text-[13px]" style="color: var(--fg-2)">Win probability assumptions break on adjusted targets, so rain-affected matches are excluded.</p></div></div>
+          </div>
+        </article>
+      </div>
+      <article class="panel mb-4">
+        <div class="panel-hd">
+          <div>
+            <h2 class="text-base font-semibold">Crossed ridge regression</h2>
+            <p class="text-[12.5px]" style="color: var(--fg-3)">Every player's rating splits into baseline talent and a pressure adjustment.</p>
+          </div>
+          <div class="seg-btn" role="group" aria-label="Choose component" id="ac-toggle">
+            <button data-k="a" aria-pressed="true">a · baseline</button>
+            <button data-k="c" aria-pressed="false">c · slope</button>
+          </div>
+        </div>
+        <div class="p-[18px] grid gap-5 lg:grid-cols-2">
+          <div class="flex flex-col gap-4 min-w-0">
+            <div class="formula" aria-label="P equals a plus c"><b>P</b> = <em>a</em> + <b>c</b></div>
+            <div id="ac-detail" aria-live="polite"></div>
+          </div>
+          <div class="min-w-0">
+            <p class="eyebrow mb-3">Split-half reliability vs. 0.40 threshold</p>
+            <div class="tbl-wrap">
+              <table class="lb" style="min-width: 440px">
+                <thead><tr><th>Metric</th><th class="num">r</th><th>vs. threshold</th><th>Verdict</th></tr></thead>
+                <tbody id="rel-body"></tbody>
+              </table>
+            </div>
+            <p class="text-[13px] mt-3" style="color: var(--fg-2)">
+              Clutch is not a stable trait. Select on <b class="mono" style="color: var(--fg)">a</b>, never on <b class="mono" style="color: var(--fg)">c</b>.
+            </p>
+          </div>
+        </div>
+      </article>
+      <article class="panel mb-4" id="lab-panel">
+        <div class="panel-hd">
+          <div>
+            <h2 class="text-base font-semibold">Bootstrap lab</h2>
+            <p class="text-[12.5px]" style="color: var(--fg-3)">Illustrative simulation, not Royals data. Set a true rating and a sample size, then watch the lo10 floor move.</p>
+          </div>
+          <button type="button" class="chip" id="lab-run">Resample</button>
+        </div>
+        <div class="p-[18px] grid gap-6 lg:grid-cols-5">
+          <div class="lg:col-span-2 flex flex-col gap-5 min-w-0">
+            <div>
+              <label for="lab-p" class="flex justify-between mono text-[12px] mb-2"><span>True rating (P)</span><span id="lab-pv" style="color: var(--pink)"></span></label>
+              <input type="range" id="lab-p" min="0.05" max="0.35" step="0.005" value="0.20">
+            </div>
+            <div>
+              <label for="lab-n" class="flex justify-between mono text-[12px] mb-2"><span>Sample size (n)</span><span id="lab-nv" style="color: var(--pink)"></span></label>
+              <input type="range" id="lab-n" min="100" max="3000" step="50" value="600">
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button type="button" class="chip" data-n="250">Thin sample · n 250</button>
+              <button type="button" class="chip" data-n="2500">Deep sample · n 2,500</button>
+            </div>
+            <div class="grid grid-cols-3 gap-2">
+              <div class="readout"><span class="eyebrow">Std. error</span><b id="lab-se"></b></div>
+              <div class="readout"><span class="eyebrow">lo10</span><b id="lab-lo" style="color: var(--pink)"></b></div>
+              <div class="readout"><span class="eyebrow">Gap</span><b id="lab-gap"></b></div>
+            </div>
+          </div>
+          <div class="lg:col-span-3 min-w-0">
+            <canvas id="lab-cv" style="width: 100%; height: 250px; display: block" role="img" aria-label="Histogram of 200 bootstrap replicate ratings with the 10th percentile marked"></canvas>
+            <p class="mono text-[11px] mt-2" style="color: var(--fg-3)">200 replicate ratings. Pink bars fall at or below lo10, the floor used for ranking.</p>
+          </div>
+        </div>
+      </article>
+      <article class="panel">
+        <div class="panel-hd"><h2 class="text-base font-semibold">Why rank on lo10</h2><span class="tag">200 replicates</span></div>
+        <div class="p-[18px] grid gap-3 md:grid-cols-3">
+          <div class="check"><span class="ic">1</span><div><h3 class="font-semibold text-[13.5px]">Resample by match</h3><p class="text-[13px]" style="color: var(--fg-2)">200 replicates, each drawing whole matches so ball-level correlation stays intact.</p></div></div>
+          <div class="check"><span class="ic">2</span><div><h3 class="font-semibold text-[13.5px]">Take the 10th percentile</h3><p class="text-[13px]" style="color: var(--fg-2)">A conservative floor on skill. Nine in ten resamples score at or above it.</p></div></div>
+          <div class="check"><span class="ic">3</span><div><h3 class="font-semibold text-[13.5px]">Variance penalty</h3><p class="text-[13px]" style="color: var(--fg-2)">Consistent beats lucky. Thin samples sit further below their P, as the batter chart shows.</p></div></div>
+        </div>
+      </article>
+</section>
+<section id="roadmap" class="section">
+  <div class="sec-hd">
+    <p class="eyebrow">05 · Roadmap</p>
+    <h2 class="sec-title">What comes next</h2>
+    <p class="sec-sub">Planned upgrades to the metrics, the validation and the coverage of the pipeline.</p>
+  </div>
+      <div class="panel mb-4">
+        <div class="panel-hd">
+          <div>
+            <h2 class="text-base font-semibold">Metric architecture</h2>
+            <p class="text-[12.5px]" style="color: var(--fg-3)">Two upgrades are planned. Pick one to compare.</p>
+          </div>
+          <div class="seg-btn" role="group" aria-label="Choose upgrade" id="swap-toggle">
+            <button data-k="wpa" aria-pressed="true">EPA → WPA</button>
+            <button data-k="prl" aria-pressed="false">LI → PRL</button>
+          </div>
+        </div>
+        <div class="p-[18px]" id="swap-body" aria-live="polite"></div>
+      </div>
+      <div class="grid gap-4 lg:grid-cols-5 mb-4">
+        <article class="panel lg:col-span-2">
+          <div class="panel-hd"><h2 class="text-base font-semibold">Phase-relative leverage</h2></div>
+          <div class="p-[18px] flex flex-col gap-4">
+            <div class="formula"><b>PRL</b> = LI ÷ <em>Phase-Specific Variance</em></div>
+            <p style="color: var(--fg-2)">
+              A 2.5% swing in the Powerplay is routine. The same swing in the Death Overs is rare. Dividing by the phase's own
+              variance keeps only the pressure that is unusual for that phase.
+            </p>
+            <p class="mono text-[12px]" style="color: var(--pink)">→ Separate Powerplay and Death Overs leaderboards</p>
+          </div>
+        </article>
+        <article class="panel lg:col-span-3">
+          <div class="panel-hd">
+            <div>
+              <h2 class="text-base font-semibold">Reliability, validation and coverage</h2>
+              <p class="text-[12.5px]" style="color: var(--fg-3)">Tick items off as they ship. Your ticks stay in this browser.</p>
+            </div>
+            <span class="mono text-[11px]" style="color: var(--fg-3)" id="todo-count"></span>
+          </div>
+          <div class="p-[18px] grid gap-2" id="todo-list"></div>
+        </article>
+      </div>
+      <article class="panel">
+        <div class="panel-hd"><h2 class="text-base font-semibold">Takeaways</h2><span class="tag">Season 2</span></div>
+        <div class="p-[18px] grid gap-3 sm:grid-cols-2 lg:grid-cols-5" id="takeaways"></div>
+        <div class="px-[18px] pb-[18px]">
+          <p class="mono text-[12px]" style="color: var(--fg-2)"><span style="color: var(--pink)">NEXT</span> &nbsp;True WPA · PRL · fielding pressure · back-testing</p>
+        </div>
+      </article>
+</section>
+  <footer class="mt-12 pt-5 flex flex-wrap justify-between gap-2 mono text-[11px]" style="border-top: 1px solid var(--line); color: var(--fg-3)">
+    <span>// RAJASTHAN ROYALS ANALYTICS · SUPERR SELECTOR SEASON 2</span>
+    <span>Pre-ball WP · LI ≥ 0.0258 · crossed ridge · lo10 floor</span>
+  </footer>
+</main>
+<div id="pal" class="pal-back" role="dialog" aria-modal="true" aria-label="Command palette" hidden>
+  <div class="pal-box">
+    <input id="pal-q" class="field" type="text" placeholder="Jump to a tab, player or action" autocomplete="off" aria-label="Search commands">
+    <ul id="pal-list" role="listbox"></ul>
+    <div class="pal-ft">↑ ↓ move · Enter select · Esc close · keys 1-6 jump to sections · / opens search</div>
+  </div>
+</div>
+<div id="toast" role="status" hidden></div>
+<script>window.SUPERR_DATA = {"meta": {"matches": 790, "legal_balls": 180008, "thr": 0.025852198703767332, "hi_balls": 36002, "metric": {"bat": "P", "bowl": "P"}, "seed": 42}, "batters": [{"name": "Vaibhav Sooryavanshi", "role": "T", "p": 0.332, "lo": 0.2, "n": 578, "a": 0.274, "c": 0.058, "p_top10": 0.93}, {"name": "Abhishek Sharma", "role": "T", "p": 0.279, "lo": 0.191, "n": 2196, "a": 0.249, "c": 0.029, "p_top10": 0.93}, {"name": "Suryakumar Yadav", "role": "M", "p": 0.246, "lo": 0.175, "n": 2638, "a": 0.231, "c": 0.014, "p_top10": 0.9}, {"name": "Tim David", "role": "F", "p": 0.229, "lo": 0.15, "n": 1203, "a": 0.183, "c": 0.047, "p_top10": 0.78}, {"name": "Pathum Nissanka", "role": "T", "p": 0.188, "lo": 0.121, "n": 1526, "a": 0.127, "c": 0.061, "p_top10": 0.57}, {"name": "Heinrich Klaasen", "role": "M", "p": 0.174, "lo": 0.111, "n": 1412, "a": 0.162, "c": 0.013, "p_top10": 0.45}, {"name": "Shreyas Iyer", "role": "M", "p": 0.179, "lo": 0.099, "n": 1776, "a": 0.124, "c": 0.056, "p_top10": 0.55}, {"name": "Sikandar Raza", "role": "M", "p": 0.166, "lo": 0.093, "n": 961, "a": 0.111, "c": 0.055, "p_top10": 0.41}, {"name": "Nicholas Pooran", "role": "T", "p": 0.171, "lo": 0.091, "n": 1905, "a": 0.113, "c": 0.058, "p_top10": 0.48}, {"name": "Namboori Tilak Varma", "role": "M", "p": 0.134, "lo": 0.086, "n": 2354, "a": 0.127, "c": 0.006, "p_top10": 0.2}], "bowlers": [{"name": "Josh Hazlewood", "tag": "Pace · 28% of balls in the death overs", "p": 0.254, "lo": 0.159, "n": 1427, "loRank": 1, "gap": 0.095, "ret": 0.626, "pRank": 1}, {"name": "Kuldeep Yadav", "tag": "Spin · 15% of balls in the death overs", "p": 0.213, "lo": 0.151, "n": 1934, "loRank": 2, "gap": 0.062, "ret": 0.709, "pRank": 2}, {"name": "Sunil Narine", "tag": "Spin · 14% of balls in the death overs", "p": 0.207, "lo": 0.138, "n": 1485, "loRank": 3, "gap": 0.069, "ret": 0.667, "pRank": 3}, {"name": "Rashid Khan", "tag": "Spin · 19% of balls in the death overs", "p": 0.2, "lo": 0.136, "n": 2702, "loRank": 4, "gap": 0.064, "ret": 0.68, "pRank": 4}, {"name": "Jasprit Bumrah", "tag": "Pace · 33% of balls in the death overs", "p": 0.197, "lo": 0.125, "n": 1706, "loRank": 5, "gap": 0.072, "ret": 0.635, "pRank": 5}, {"name": "Varun Chakravarthy", "tag": "Spin · 15% of balls in the death overs", "p": 0.188, "lo": 0.125, "n": 2108, "loRank": 6, "gap": 0.063, "ret": 0.665, "pRank": 6}, {"name": "Krunal Pandya", "tag": "Spin · 7% of balls in the death overs", "p": 0.153, "lo": 0.087, "n": 1261, "loRank": 7, "gap": 0.066, "ret": 0.569, "pRank": 7}, {"name": "Mitchell Santner", "tag": "Spin · 11% of balls in the death overs", "p": 0.152, "lo": 0.086, "n": 1725, "loRank": 8, "gap": 0.066, "ret": 0.566, "pRank": 9}, {"name": "Bhuvneshwar Kumar", "tag": "Pace · 32% of balls in the death overs", "p": 0.138, "lo": 0.078, "n": 2246, "loRank": 9, "gap": 0.06, "ret": 0.565, "pRank": 10}, {"name": "Nathan Ellis", "tag": "Pace · 41% of balls in the death overs", "p": 0.153, "lo": 0.077, "n": 910, "loRank": 10, "gap": 0.076, "ret": 0.503, "pRank": 8}], "bowler_stats": {"Josh Hazlewood": {"p": 0.254, "lo": 0.159, "n": 1427}, "Kuldeep Yadav": {"p": 0.213, "lo": 0.151, "n": 1934}, "Sunil Narine": {"p": 0.207, "lo": 0.138, "n": 1485}, "Rashid Khan": {"p": 0.2, "lo": 0.136, "n": 2702}, "Jasprit Bumrah": {"p": 0.197, "lo": 0.125, "n": 1706}, "Varun Chakravarthy": {"p": 0.188, "lo": 0.125, "n": 2108}, "Krunal Pandya": {"p": 0.153, "lo": 0.087, "n": 1261}, "Mitchell Santner": {"p": 0.152, "lo": 0.086, "n": 1725}, "Bhuvneshwar Kumar": {"p": 0.138, "lo": 0.078, "n": 2246}, "Nathan Ellis": {"p": 0.153, "lo": 0.077, "n": 910}}, "reliability": [{"m": "Batter P", "r": 0.611, "v": "Moderate", "c": "warn"}, {"m": "Batter a", "r": 0.648, "v": "Moderate", "c": "warn"}, {"m": "Batter c", "r": 0.102, "v": "Do not use", "c": "bad"}, {"m": "Bowler P", "r": 0.521, "v": "Moderate", "c": "warn"}, {"m": "Bowler a", "r": 0.564, "v": "Moderate", "c": "warn"}, {"m": "Bowler c", "r": 0.036, "v": "Do not use", "c": "bad"}]};</script>
+<script>
+(function () {
+  'use strict';
+  /* ---------- Data ---------- */
+  var ROLE_LABEL = { T: 'Top Order (1-3)', M: 'Middle Order (4-5)', F: 'Finishers (6-7)' };
+  var BATTERS = (window.SUPERR_DATA && window.SUPERR_DATA.batters) || [
+    { name: 'Vaibhav Sooryavanshi', role: 'T', p: 0.332, lo: 0.200, n: 578 },
+    { name: 'Abhishek Sharma',      role: 'T', p: 0.279, lo: 0.191, n: 2196 },
+    { name: 'Suryakumar Yadav',     role: 'M', p: 0.246, lo: 0.175, n: 2638 },
+    { name: 'Tim David',            role: 'F', p: 0.229, lo: 0.150, n: 1203 },
+    { name: 'Pathum Nissanka',      role: 'T', p: 0.188, lo: 0.121, n: 1526 },
+    { name: 'Heinrich Klaasen',     role: 'F', p: 0.174, lo: 0.111, n: 1412 },
+    { name: 'Shreyas Iyer',         role: 'M', p: 0.179, lo: 0.099, n: 1776 },
+    { name: 'Sikandar Raza',        role: 'M', p: 0.166, lo: 0.093, n: 961 },
+    { name: 'Nicholas Pooran',      role: 'M', p: 0.171, lo: 0.091, n: 1905 },
+    { name: 'Namboori Tilak Varma', role: 'M', p: 0.134, lo: 0.086, n: 2354 }
+  ];
+  BATTERS.forEach(function (b, i) { b.loRank = i + 1; b.gap = b.p - b.lo; b.ret = b.lo / b.p; });
+  var pOrder = BATTERS.slice().sort(function (a, b) { return b.p - a.p; });
+  pOrder.forEach(function (b, i) { b.pRank = i + 1; });
+  var BOWLERS = (window.SUPERR_DATA && window.SUPERR_DATA.bowlers) || [
+    { name: 'Josh Hazlewood',     tag: 'Pace · 28% of balls in the death overs', p: 0.254, lo: 0.159, n: 1427, loRank: 1, gap: 0.095, ret: 0.626, pRank: 1 },
+    { name: 'Kuldeep Yadav',      tag: 'Spin · 15% of balls in the death overs', p: 0.213, lo: 0.151, n: 1934, loRank: 2, gap: 0.062, ret: 0.709, pRank: 2 },
+    { name: 'Sunil Narine',       tag: 'Spin · 14% of balls in the death overs', p: 0.207, lo: 0.138, n: 1485, loRank: 3, gap: 0.069, ret: 0.667, pRank: 3 },
+    { name: 'Rashid Khan',        tag: 'Spin · 19% of balls in the death overs', p: 0.200, lo: 0.136, n: 2702, loRank: 4, gap: 0.064, ret: 0.680, pRank: 4 },
+    { name: 'Jasprit Bumrah',     tag: 'Pace · 33% of balls in the death overs', p: 0.197, lo: 0.125, n: 1706, loRank: 5, gap: 0.072, ret: 0.635, pRank: 5 },
+    { name: 'Varun Chakravarthy', tag: 'Spin · 15% of balls in the death overs', p: 0.188, lo: 0.125, n: 2108, loRank: 6, gap: 0.063, ret: 0.665, pRank: 6 },
+    { name: 'Krunal Pandya',      tag: 'Spin · 7% of balls in the death overs',  p: 0.153, lo: 0.087, n: 1261, loRank: 7, gap: 0.066, ret: 0.569, pRank: 7 },
+    { name: 'Mitchell Santner',   tag: 'Spin · 11% of balls in the death overs', p: 0.152, lo: 0.086, n: 1725, loRank: 8, gap: 0.066, ret: 0.566, pRank: 9 },
+    { name: 'Bhuvneshwar Kumar',  tag: 'Pace · 32% of balls in the death overs', p: 0.138, lo: 0.078, n: 2246, loRank: 9, gap: 0.060, ret: 0.565, pRank: 10 },
+    { name: 'Nathan Ellis',       tag: 'Pace · 41% of balls in the death overs', p: 0.153, lo: 0.077, n: 910,  loRank: 10, gap: 0.076, ret: 0.503, pRank: 8 }
+  ];
+  BOWLERS.forEach(function (b, i) {
+    if (!b.loRank) b.loRank = i + 1;
+    if (b.p != null && b.lo != null) {
+      if (b.gap == null) b.gap = +(b.p - b.lo).toFixed(3);
+      if (b.ret == null) b.ret = +(b.lo / b.p).toFixed(3);
+    }
+  });
+  if (BOWLERS.length && BOWLERS[0].pRank == null) {
+    var bPOrder = BOWLERS.slice().sort(function (a, b) { return (b.p || 0) - (a.p || 0); });
+    bPOrder.forEach(function (b, i) { b.pRank = i + 1; });
+  }
+  /* Fill in as { 'Josh Hazlewood': { p: 0.000, lo: 0.000, n: 0 } } when the figures are available. */
+  var BOWLER_STATS = (window.SUPERR_DATA && window.SUPERR_DATA.bowler_stats) || {};
+  var STAGES = [
+    { t: 'Corpus', h: 'Ball-by-ball T20 league data',
+      d: 'The corpus covers 790 matches and 180,008 balls. Every ball carries its match state, the batter and bowler, and the outcome. Format-specific adjustments are a planned item because the model is trained on T20 leagues only.' },
+    { t: 'Data hygiene', h: 'Remove what would mislead the model',
+      d: 'The len1 leak is fixed with a strict pre-ball feature cutoff. Super Overs are removed because tie-break dynamics distort LI. DLS targets are removed because win probability assumptions break on adjusted targets.' },
+    { t: 'Win probability', h: 'Pre-ball gradient-boosted win probability',
+      d: 'A gradient-boosted classifier (scikit-learn HistGradientBoosting) reads the match state before each ball and outputs win probability. Out-of-time log loss is 0.531 against 0.693 for a coin flip, a 23% improvement, which is what makes the probabilities usable as swings.' },
+    { t: 'Leverage index', h: 'Find the deliveries that matter',
+      d: 'LI is the expected win probability swing from the next ball. Deliveries at LI ≥ 0.0258, the top 20%, form the pressure tier. A ball in that tier is expected to move win probability by about 2.6 points or more.' },
+    { t: 'Crossed ridge', h: 'Split talent from pressure response',
+      d: 'Players and opponents are fitted together with an L2 penalty, giving P = a + c. The a term is baseline talent across all deliveries. The c term is the extra performance on high-LI deliveries. The c term is too noisy to rank on by itself, so it is shrunk hard and P = a + c is ranked by its bootstrap floor.' },
+    { t: 'Bootstrap floor', h: 'Rank by lo10 inside role pools',
+      d: '200 match-level resamples give a distribution of each player\'s rating. The 10th percentile, lo10, is the ranking key. Batters are ranked in one pool. Batting-order bucket is a context term, and the role tags on this page are display groupings.' }
+  ];
+  var RELIABILITY = (window.SUPERR_DATA && window.SUPERR_DATA.reliability) || [
+    { m: 'Batter P',  r: 0.32, v: 'Below threshold', c: 'warn' },
+    { m: 'Bowler P',  r: 0.16, v: 'Critically unstable', c: 'bad' },
+    { m: 'Batter c',  r: 0.10, v: 'Do not use', c: 'bad' },
+    { m: 'Bowler c',  r: 0.04, v: 'Do not use', c: 'bad' }
+  ];
+  var AC = {
+    a: { h: 'a · Baseline talent', tone: 'var(--pink)',
+         d: 'Overall skill across all deliveries. It is the main driver of P and the part that repeats best from sample to sample.',
+         stat: 'Batter P reliability 0.61 · Bowler P reliability 0.52', use: 'MAIN DRIVER OF P' },
+    c: { h: 'c · Pressure slope', tone: 'var(--bad)',
+         d: 'The performance change on high-LI deliveries, shrunk with an L2 penalty. Reliability is 0.10 for batters and 0.04 for bowlers, which is indistinguishable from noise.',
+         stat: 'Batter c reliability 0.10 · Bowler c reliability 0.04', use: 'NOT RELIABLE ALONE' }
+  };
+  var SWAPS = {
+    wpa: {
+      from: { k: 'EPA', h: 'Expected Points Added', d: 'Runs over phase expectation plus a phase-dependent wicket cost.',
+              pts: ['Undervalues dot balls that prevent a boundary', 'Undervalues wickets in the death overs', 'Over-penalizes top-order dismissals'] },
+      to:   { k: 'True WPA', h: 'Win Probability Added', d: 'The absolute, non-linear shift in win probability caused by each ball.',
+              pts: ['Credits boundary-preventing dot balls', 'Values death-over wickets at their real weight', 'Needs less role segmentation over time'] }
+    },
+    prl: {
+      from: { k: 'LI', h: 'Leverage Index', d: 'Expected win probability swing from the next ball.',
+              pts: ['A 2.5% swing in the Powerplay counts the same as in the death overs', 'Pressure and phase are mixed together', 'One global threshold, LI ≥ 0.0258'] },
+      to:   { k: 'PRL', h: 'Phase-Relative Leverage', d: 'The high-pressure flag set at the 80th percentile of LI within each innings and phase.',
+              pts: ['Isolates true pressure from phase-driven baseline noise', 'Phase-aware thresholds', 'Separate Powerplay and Death Overs leaderboards'] }
+    }
+  };
+  var TODOS = [
+    { id: 'thin', t: 'Automated thin-sample flags', d: 'Under 20 deliveries at LI ≥ 0.0258 triggers a warning flag in the reporting layer.' },
+    { id: 'decile', t: 'Decile calibration', d: 'Pair top and bottom decile outputs with qualitative scouting.' },
+    { id: 'back', t: 'Post-tournament back-testing', d: 'Validate Season 2 rankings to calibrate the lo10 floor.' },
+    { id: 'field', t: 'Fielding under pressure', d: 'Catching and ground-fielding efficiency in high-LI moments.' },
+    { id: 'format', t: 'Format-specific adjustments', d: 'Cross-format factors, since the model is trained on T20 leagues only.' }
+  ];
+  var TAKEAWAYS = [
+    ['Pressure is quantifiable', 'WP + LI ≥ 0.026 · about 36,002 high-pressure deliveries · 23% better log loss than a coin flip.'],
+    ['Clutch is noise', 'r = 0.10 batters, 0.04 bowlers. The slope c is shrunk hard and only enters the ranking through the floor of P = a + c.'],
+    ['Rank on the floor', 'Bootstrapped lo10 across 200 match replicates.'],
+    ['Role matters', 'Batting-order bucket is a context term in the model.'],
+    ['Transparency wins', 'Every disclosed limitation has a defined fix.']
+  ];
+  /* ---------- Helpers ---------- */
+  function $(s, r) { return (r || document).querySelector(s); }
+  function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
+  function f3(x) { return x.toFixed(3); }
+  function fmtN(x) { return x.toLocaleString('en-US'); }
+  function store(k, v) {
+    try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; }
+  }
+  /* ---------- Replicate grid (KPI) ---------- */
+  (function () {
+    var g = $('#rep-grid'), h = '', n = 28, tot = 0, w = [], cum = 0, i;
+    for (i = 0; i < n; i++) { var z = (i - (n - 1) / 2) / 5.2; w.push(Math.exp(-z * z / 2)); tot += w[i]; }
+    for (i = 0; i < n; i++) { cum += w[i] / tot; h += '<i style="flex:1;display:block;border-radius:2px 2px 0 0;height:' + Math.round(w[i] * 100) + '%;background:' + (cum <= 0.1 ? 'var(--pink)' : 'rgba(255,255,255,.18)') + '"></i>'; }
+    g.innerHTML = h;
+    /* 200 cells over 40 columns gives 5 rows; the first 20 cells are the lowest decile */
+  })();
+  /* ---------- Tabs ---------- */
+  var SECS = ['home', 'overview', 'batters', 'bowlers', 'method', 'roadmap'];
+  function go(t) { var el = $('#' + t); if (el) el.scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth', block: 'start' }); }
+  function spy() {
+    var cur = SECS[0];
+    SECS.forEach(function (s) { var el = $('#' + s); if (el && el.getBoundingClientRect().top <= 140) cur = s; });
+    $$('#nav a').forEach(function (a) { a.setAttribute('aria-current', a.dataset.s === cur ? 'true' : 'false'); });
+  }
+  /* ---------- Batters ---------- */
+  var batState = { role: 'ALL', q: '', sort: 'lo', open: null };
+  function batList() {
+    var q = batState.q.trim().toLowerCase();
+    var list = BATTERS.filter(function (b) {
+      return (batState.role === 'ALL' || b.role === batState.role) && (!q || b.name.toLowerCase().indexOf(q) >= 0);
+    });
+    var key = batState.sort;
+    list.sort(function (a, b) {
+      if (key === 'p') return b.p - a.p;
+      if (key === 'n') return b.n - a.n;
+      if (key === 'gap') return b.gap - a.gap;
+      return b.lo - a.lo;
+    });
+    return list;
+  }
+  function renderRoleSummary() {
+    var h = '';
+    ['T', 'M', 'F'].forEach(function (r) {
+      var rows = BATTERS.filter(function (b) { return b.role === r; });
+      var best = rows.slice().sort(function (a, b) { return b.lo - a.lo; })[0];
+      var avg = rows.reduce(function (s, b) { return s + b.lo; }, 0) / rows.length;
+      h += '<button type="button" class="panel kpi text-left" style="cursor:pointer" data-pick="' + r + '">' +
+        '<span class="role ' + r + '" style="align-self:flex-start">' + ROLE_LABEL[r] + '</span>' +
+        '<div class="flex items-baseline gap-2"><span class="kpi-val" style="font-size:24px">' + rows.length + '</span>' +
+        '<span class="mono text-[11px]" style="color:var(--fg-3)">on the list · mean lo10 ' + f3(avg) + '</span></div>' +
+        '<p class="kpi-note">Best floor: <b style="color:var(--fg)">' + best.name + '</b> at ' + f3(best.lo) + '</p></button>';
+    });
+    $('#role-summary').innerHTML = h;
+  }
+  function renderBatters() {
+    var list = batList();
+    var body = $('#bat-body'), h = '';
+    var maxLo = 0.35;
+    list.forEach(function (b, i) {
+      var open = batState.open === b.name;
+      var retention = Math.round((b.lo / b.p) * 100);
+      h += '<tr class="row" tabindex="0" data-name="' + b.name + '" aria-expanded="' + open + '">' +
+        '<td><div class="rank' + (i === 0 ? ' r1' : '') + '">' + String(i + 1).padStart(2, '0') + '</div><div class="rank-sub">lo10 #' + b.loRank + ' · P #' + b.pRank + '</div></td>' +
+        '<td><div class="flex items-center gap-3">' + avatar(b.name, b.role) + '<span class="font-semibold">' + b.name + '</span></div></td>' +
+        '<td><span class="role ' + b.role + '">' + ROLE_LABEL[b.role] + '</span></td>' +
+        '<td class="num mono tnum">' + f3(b.p) + '</td>' +
+        '<td class="num"><div class="lo-cell"><span class="lo-bar"><i style="width:' + (b.lo / maxLo * 100) + '%"></i></span><span class="mono tnum font-bold" style="color:var(--pink)">' + f3(b.lo) + '</span></div></td>' +
+        '<td class="num mono tnum">' + fmtN(b.n) + '</td>' +
+        '<td class="num"><button type="button" class="chip cmp-btn" data-name="' + b.name + '" aria-pressed="' + (cmp.indexOf(b.name) >= 0) + '">' + (cmp.indexOf(b.name) >= 0 ? '✓ Comparing' : '+ Compare') + '</button></td></tr>';
+      if (open) {
+        h += '<tr class="detail"><td colspan="7"><div class="grid gap-4 p-5 sm:grid-cols-3">' +
+          detailCell('Floor gap (P − lo10)', f3(b.gap), 'How far the 10th percentile sits below the point rating.') +
+          detailCell('Floor retention', retention + '%', 'lo10 as a share of P. Higher means a steadier rating.') +
+          detailCell('Sample', fmtN(b.n), b.n < 1000 ? 'Smaller sample. Expect the floor to move as more data arrives.' : 'Large enough sample to trust the floor.') +
+          '</div></td></tr>';
+      }
+    });
+    body.innerHTML = h;
+    $('#bat-empty').hidden = list.length > 0;
+    $('#bat-count').textContent = list.length + ' of ' + BATTERS.length + ' players';
+    renderDumbbell(list);
+    renderCompare();
+  }
+  function detailCell(label, val, note) {
+    return '<div><p class="eyebrow mb-1">' + label + '</p><p class="mono text-[22px] font-bold">' + val + '</p>' +
+      '<p class="text-[12.5px] mt-1" style="color:var(--fg-3)">' + note + '</p></div>';
+  }
+  function renderDumbbell(list) {
+    var MAX = 0.35, h = '';
+    list.forEach(function (b) {
+      var l = b.lo / MAX * 100, p = b.p / MAX * 100;
+      h += '<div class="dumb-row"><span class="dumb-name" title="' + b.name + '">' + b.name + '</span>' +
+        '<div class="dumb-track" role="img" aria-label="' + b.name + ' lo10 ' + f3(b.lo) + ' to P ' + f3(b.p) + '">' +
+        '<span class="dumb-seg" style="left:' + l + '%;width:' + (p - l) + '%"></span>' +
+        '<span class="dumb-pt l" style="left:' + l + '%"></span><span class="dumb-pt p" style="left:' + p + '%"></span></div></div>';
+    });
+    $('#dumbbell').innerHTML = h;
+    var ax = '';
+    [0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35].forEach(function (t) {
+      ax += '<span style="left:' + (t / MAX * 100) + '%">' + t.toFixed(2) + '</span>';
+    });
+    $('#axis').innerHTML = ax;
+  }
+  function toggleRow(name) {
+    batState.open = batState.open === name ? null : name;
+    renderBatters();
+  }
+  $('#bat-body').addEventListener('click', function (e) {
+    var cb = e.target.closest('.cmp-btn');
+    if (cb) { toggleCmp(cb.dataset.name); return; }
+    var tr = e.target.closest('tr.row'); if (tr) toggleRow(tr.dataset.name);
+  });
+  $('#bat-body').addEventListener('keydown', function (e) {
+    if (e.target.closest('.cmp-btn')) return;
+    var tr = e.target.closest('tr.row');
+    if (tr && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); toggleRow(tr.dataset.name); var n = tr.dataset.name; setTimeout(function () { var el = $('tr.row[data-name="' + n + '"]'); if (el) el.focus(); }, 0); }
+  });
+  $('#role-filter').addEventListener('click', function (e) {
+    var b = e.target.closest('.chip'); if (!b) return;
+    setRole(b.dataset.role);
+  });
+  function setRole(r) {
+    batState.role = r;
+    $$('#role-filter .chip').forEach(function (c) { c.setAttribute('aria-pressed', c.dataset.role === r ? 'true' : 'false'); });
+    renderBatters();
+  }
+  $('#role-summary').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-pick]'); if (!b) return;
+    setRole(batState.role === b.dataset.pick ? 'ALL' : b.dataset.pick);
+  });
+  $('#bat-search').addEventListener('input', function (e) { batState.q = e.target.value; renderBatters(); });
+  $('#bat-sort').addEventListener('change', function (e) { batState.sort = e.target.value; renderBatters(); });
+  /* ---------- Bowlers ---------- */
+  var bowlOpen = null;
+  function renderBowlPodium() {
+    var CLS = ['first', 'second', 'third'];
+    var el = $('#bowl-podium'); if (!el) return;
+    el.innerHTML = BOWLERS.slice(0, 3).map(function (b, i) {
+      return '<button type="button" class="panel pod ' + CLS[i] + '" data-name="' + b.name + '">' +
+        '<div class="flex items-center justify-between gap-2"><span class="mono text-[11px]" style="color:var(--fg-3)">#' + (i + 1) + ' BY FLOOR</span><span class="role T">' + b.tag.split(' · ')[0] + '</span></div>' +
+        '<div class="flex items-center gap-3">' + avatar(b.name, 'B', true) + '<div class="min-w-0"><p class="font-semibold text-[15px]">' + b.name + '</p><p class="mono text-[11px]" style="color:var(--fg-3)">P ' + f3(b.p) + ' · n ' + fmtN(b.n) + '</p></div></div>' +
+        '<div><div class="flex items-baseline justify-between"><span class="eyebrow">lo10 floor</span><span class="mono" style="font-size:30px;font-weight:700;color:var(--pink);letter-spacing:-.03em">' + f3(b.lo) + '</span></div>' +
+        '<div class="meter meter-lg mt-2"><i style="width:' + Math.round(b.ret * 100) + '%;background:linear-gradient(90deg,var(--royal),var(--pink))"></i></div>' +
+        '<p class="mono text-[10.5px] mt-1" style="color:var(--fg-3)">keeps ' + Math.round(b.ret * 100) + '% of P at the floor</p></div></button>';
+    }).join('');
+  }
+
+  function renderBowlers() {
+    renderBowlPodium();
+    var q = $('#bowl-search').value.trim().toLowerCase(), h = '', shown = 0;
+    BOWLERS.forEach(function (b, i) {
+      if (q && b.name.toLowerCase().indexOf(q) < 0) return;
+      shown++;
+      var open = bowlOpen === b.name;
+      h += '<tr class="row" tabindex="0" data-name="' + b.name + '" aria-expanded="' + open + '">' +
+        '<td><div class="rank' + (i === 0 ? ' r1' : '') + '">' + String(i + 1).padStart(2, '0') + '</div><div class="rank-sub">lo10 #' + b.loRank + ' · P #' + b.pRank + '</div></td>' +
+        '<td><div class="flex items-center gap-3">' + avatar(b.name, 'B') + '<span class="font-semibold">' + b.name + '</span></div></td>' +
+        '<td style="color:var(--fg-2)">' + b.tag + '</td>' +
+        '<td class="num mono tnum">' + f3(b.p) + '</td>' +
+        '<td class="num"><div class="lo-cell"><span class="lo-bar"><i style="width:' + (b.lo / 0.35 * 100) + '%"></i></span><span class="mono tnum font-bold" style="color:var(--pink)">' + f3(b.lo) + '</span></div></td>' +
+        '<td class="num mono tnum">' + fmtN(b.n) + '</td></tr>';
+      if (open) {
+        h += '<tr class="detail"><td colspan="6"><div class="grid gap-4 p-5 sm:grid-cols-3">' +
+          detailCell('Floor gap (P − lo10)', f3(b.gap), 'Uncertainty buffer for this bowler.') +
+          detailCell('Floor retention', Math.round(b.ret * 100) + '%', 'lo10 as percentage of P rating.') +
+          detailCell('Sample', fmtN(b.n), b.n < 1000 ? 'Smaller sample size.' : 'Robust sample size.') +
+          '</div></td></tr>';
+      }
+    });
+    $('#bowl-body').innerHTML = h;
+    $('#bowl-empty').hidden = shown > 0;
+  }
+
+  function toggleBowlRow(name) {
+    bowlOpen = bowlOpen === name ? null : name;
+    renderBowlers();
+  }
+  $('#bowl-body').addEventListener('click', function (e) {
+    var tr = e.target.closest('tr.row'); if (tr) toggleBowlRow(tr.dataset.name);
+  });
+  $('#bowl-body').addEventListener('keydown', function (e) {
+    var tr = e.target.closest('tr.row');
+    if (tr && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault(); toggleBowlRow(tr.dataset.name);
+      var n = tr.dataset.name;
+      setTimeout(function () { var el = $('#bowl-body tr.row[data-name="' + n + '"]'); if (el) el.focus(); }, 0);
+    }
+  });
+  var bowlPod = $('#bowl-podium');
+  if (bowlPod) {
+    bowlPod.addEventListener('click', function (e) {
+      var c = e.target.closest('.pod'); if (!c) return;
+      $('#bowl-search').value = '';
+      bowlOpen = c.dataset.name;
+      renderBowlers();
+      var el = $('#bowl-body tr.row[data-name="' + c.dataset.name + '"]');
+      if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    });
+  }
+  $('#bowl-search').addEventListener('input', renderBowlers);
+  /* ---------- Model tab ---------- */
+  var stageIdx = 0;
+  function renderStages() {
+    var h = '';
+    STAGES.forEach(function (s, i) {
+      h += '<button type="button" role="tab" class="stage" data-i="' + i + '" aria-selected="' + (i === stageIdx) + '">' +
+        '<span class="n">STAGE ' + String(i + 1).padStart(2, '0') + '</span><span class="t">' + s.t + '</span></button>';
+    });
+    $('#stages').innerHTML = h;
+    var s = STAGES[stageIdx];
+    $('#stage-detail').innerHTML = '<p class="eyebrow mb-2">Stage ' + (stageIdx + 1) + ' of ' + STAGES.length + '</p>' +
+      '<h3 class="text-lg font-semibold mb-2">' + s.h + '</h3><p style="color:var(--fg-2);max-width:68ch">' + s.d + '</p>';
+  }
+  $('#stages').addEventListener('click', function (e) {
+    var b = e.target.closest('.stage'); if (!b) return;
+    stageIdx = +b.dataset.i; renderStages();
+    var again = $('.stage[data-i="' + stageIdx + '"]'); if (again) again.focus();
+  });
+  function renderAC(k) {
+    var a = AC[k];
+    $$('#ac-toggle button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.k === k ? 'true' : 'false'); });
+    $('#ac-detail').innerHTML = '<div class="p-4 rounded-md" style="border:1px solid var(--line-2);background:var(--panel-2)">' +
+      '<div class="flex items-center justify-between gap-3 flex-wrap mb-2"><h3 class="font-semibold">' + a.h + '</h3>' +
+      '<span class="mono text-[10.5px] px-2 py-1 rounded" style="color:' + a.tone + ';border:1px solid ' + a.tone + '">' + a.use + '</span></div>' +
+      '<p class="text-[13.5px]" style="color:var(--fg-2)">' + a.d + '</p>' +
+      '<p class="mono text-[11px] mt-3" style="color:var(--fg-3)">' + a.stat + '</p></div>';
+  }
+  $('#ac-toggle').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (b) renderAC(b.dataset.k);
+  });
+  function renderReliability() {
+    var h = '';
+    RELIABILITY.forEach(function (r) {
+      var col = r.c === 'warn' ? 'var(--warn)' : 'var(--bad)';
+      h += '<tr><td class="font-semibold">' + r.m + '</td><td class="num mono tnum">' + r.r.toFixed(2) + '</td>' +
+        '<td style="min-width:120px"><div class="meter meter-lg" role="img" aria-label="' + r.r.toFixed(2) + ' of 1.00"><i style="width:' + (Math.min(r.r, 1) * 100) + '%;background:' + col + '"></i></div></td>' +
+        '<td><span class="verdict ' + r.c + '">' + r.v + '</span></td></tr>';
+    });
+    $('#rel-body').innerHTML = h;
+  }
+  /* ---------- Roadmap ---------- */
+  function renderSwap(k) {
+    var s = SWAPS[k];
+    $$('#swap-toggle button').forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.k === k ? 'true' : 'false'); });
+    function card(c, tone, label) {
+      var li = c.pts.map(function (p) { return '<li class="flex gap-2"><span style="color:' + tone + '">•</span><span>' + p + '</span></li>'; }).join('');
+      return '<div class="p-5 rounded-md min-w-0" style="background:var(--panel-2);border:1px solid ' + (label === 'Next' ? 'rgba(255,20,147,.45)' : 'var(--line)') + '">' +
+        '<div class="flex items-center justify-between gap-2 mb-3"><span class="mono text-[22px] font-bold" style="color:' + tone + '">' + c.k + '</span>' +
+        '<span class="tag">' + label + '</span></div><h3 class="font-semibold mb-1">' + c.h + '</h3>' +
+        '<p class="text-[13px] mb-3" style="color:var(--fg-2)">' + c.d + '</p>' +
+        '<ul class="grid gap-2 text-[13px]" style="color:var(--fg-2)">' + li + '</ul></div>';
+    }
+    $('#swap-body').innerHTML = '<div class="swap">' + card(s.from, 'var(--fg-2)', 'Today') + '<div class="arrow" aria-hidden="true">→</div>' + card(s.to, 'var(--pink)', 'Next') + '</div>';
+  }
+  $('#swap-toggle').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (b) renderSwap(b.dataset.k);
+  });
+  var done = {};
+  try { done = JSON.parse(store('superr-todos') || '{}') || {}; } catch (e) { done = {}; }
+  function renderTodos() {
+    var h = '', c = 0;
+    TODOS.forEach(function (t) {
+      var on = !!done[t.id]; if (on) c++;
+      h += '<button type="button" class="todo" data-id="' + t.id + '" aria-pressed="' + on + '"><span class="box" aria-hidden="true">✓</span>' +
+        '<span><span class="tt block font-semibold text-[13.5px]">' + t.t + '</span><span class="block text-[12.5px]" style="color:var(--fg-3)">' + t.d + '</span></span></button>';
+    });
+    $('#todo-list').innerHTML = h;
+    $('#todo-count').textContent = c + ' of ' + TODOS.length + ' done';
+  }
+  $('#todo-list').addEventListener('click', function (e) {
+    var b = e.target.closest('.todo'); if (!b) return;
+    var id = b.dataset.id; done[id] = !done[id];
+    store('superr-todos', JSON.stringify(done));
+    renderTodos();
+    var again = $('.todo[data-id="' + id + '"]'); if (again) again.focus();
+  });
+  function renderTakeaways() {
+    $('#takeaways').innerHTML = TAKEAWAYS.map(function (t, i) {
+      return '<div class="check" style="flex-direction:column;gap:8px"><span class="mono text-[11px]" style="color:var(--pink)">' + String(i + 1).padStart(2, '0') + '</span>' +
+        '<h3 class="font-semibold text-[13.5px]">' + t[0] + '</h3><p class="text-[12.5px]" style="color:var(--fg-2)">' + t[1] + '</p></div>';
+    }).join('');
+  }
+  /* ---------- Toast and CSV ---------- */
+  var toastT;
+  function toast(msg) {
+    var t = $('#toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastT); toastT = setTimeout(function () { t.hidden = true; }, 2200);
+  }
+  function copyCsv() {
+    var rows = [['rank', 'player', 'role', 'P', 'lo10', 'n']].concat(batList().map(function (b, i) {
+      return [i + 1, b.name, ROLE_LABEL[b.role], b.p, b.lo, b.n];
+    }));
+    var csv = rows.map(function (r) { return r.map(function (c) { return '"' + c + '"'; }).join(','); }).join('\n');
+    var ok = function () { toast('Copied ' + (rows.length - 1) + ' rows as CSV'); };
+    var fail = function () { toast('This browser blocked copying'); };
+    try { navigator.clipboard.writeText(csv).then(ok, fail); } catch (e) { fail(); }
+  }
+  $('#bat-copy').addEventListener('click', copyCsv);
+  /* ---------- Head to head ---------- */
+  var cmp = [];
+  function byName(n) { return BATTERS.filter(function (b) { return b.name === n; })[0]; }
+  function pct(x) { return Math.round(x * 100) + '%'; }
+  function toggleCmp(name) {
+    var i = cmp.indexOf(name);
+    if (i >= 0) cmp.splice(i, 1); else { cmp.push(name); if (cmp.length > 2) cmp.shift(); }
+    renderBatters();
+    var b = $('.cmp-btn[data-name="' + name + '"]'); if (b) b.focus();
+  }
+  function renderCompare() {
+    var sel = cmp.map(byName), box = $('#cmp-body');
+    $('#cmp-clear').hidden = !sel.length;
+    if (sel.length < 2) {
+      box.innerHTML = '<p class="mono text-[12px]" style="color:var(--fg-3)">' + (sel.length ? sel[0].name + ' selected. Pick one more batter.' : 'No batters selected yet.') + '</p>';
+      return;
+    }
+    var A = sel[0], B = sel[1], wins = [0, 0];
+    var spec = [['Rating (P)', 'p', 1, f3], ['Lower floor (lo10)', 'lo', 1, f3], ['Floor gap', 'gap', -1, f3], ['Floor retention', 'ret', 1, pct], ['Sample (n)', 'n', 0, fmtN]];
+    var rows = spec.map(function (s) {
+      var a = A[s[1]], b = B[s[1]], mx = Math.max(a, b);
+      var aw = s[2] && a !== b && (s[2] > 0 ? a > b : a < b), bw = s[2] && a !== b && !aw;
+      if (aw) wins[0]++;
+      if (bw) wins[1]++;
+      function side(v, win, cls) {
+        return '<div class="cmp-side ' + cls + (win ? ' win' : '') + '"><span class="v">' + s[3](v) + '</span><span class="cmp-bar"><i style="width:' + (v / mx * 100) + '%"></i></span></div>';
+      }
+      return '<div class="cmp-row">' + side(a, aw, 'l') + '<span class="eyebrow text-center">' + s[0] + '</span>' + side(b, bw, 'r') + '</div>';
+    }).join('');
+    function head(p, cls) {
+      return '<div class="' + cls + ' min-w-0"><p class="font-semibold">' + p.name + '</p><span class="role ' + p.role + '">' + ROLE_LABEL[p.role] + '</span></div>';
+    }
+    var verdict = wins[0] === wins[1] ? 'Level on the four quality measures.'
+      : (wins[0] > wins[1] ? A : B).name + ' leads on ' + Math.max(wins[0], wins[1]) + ' of 4 quality measures.';
+    var cross = A.role !== B.role ? ' Different role pools, so read this with care.' : '';
+    box.innerHTML = '<div class="flex justify-between gap-4 mb-2">' + head(A, '') + head(B, 'text-right') + '</div>' + rows +
+      '<p class="mono text-[12px] mt-3" style="color:var(--fg-2)"><span style="color:var(--pink)">//</span> ' + verdict + cross + '</p>';
+  }
+  $('#cmp-clear').addEventListener('click', function () { cmp = []; renderBatters(); });
+  /* ---------- Bootstrap lab ---------- */
+  var seed = 7;
+  function rng(a) {
+    return function () {
+      a |= 0; a = a + 0x6D2B79F5 | 0;
+      var t = Math.imul(a ^ a >>> 15, 1 | a);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+  function runLab() {
+    var cv = $('#lab-cv');
+    if (!cv || !cv.clientWidth) return;
+    var P = +$('#lab-p').value, n = +$('#lab-n').value, se = 1 / Math.sqrt(n), r = rng(seed), xs = [], i;
+    for (i = 0; i < 200; i++) xs.push(P + se * Math.sqrt(-2 * Math.log(1 - r())) * Math.cos(2 * Math.PI * r()));
+    xs.sort(function (a, b) { return a - b; });
+    var lo = (xs[19] + xs[20]) / 2;
+    $('#lab-pv').textContent = f3(P); $('#lab-nv').textContent = fmtN(n);
+    $('#lab-se').textContent = f3(se); $('#lab-lo').textContent = f3(lo); $('#lab-gap').textContent = f3(P - lo);
+    var dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    var X0 = -0.1, X1 = 0.5, B = 30, bins = [], base = H - 24, top = 22;
+    for (i = 0; i < B; i++) bins.push(0);
+    xs.forEach(function (x) { bins[Math.max(0, Math.min(B - 1, Math.floor((x - X0) / (X1 - X0) * B)))]++; });
+    var mx = Math.max.apply(null, bins), bw = (W - 8) / B;
+    function sx(x) { return 4 + (x - X0) / (X1 - X0) * (W - 8); }
+    bins.forEach(function (c, k) {
+      var mid = X0 + (k + 0.5) * (X1 - X0) / B, h = c / mx * (base - top);
+      g.fillStyle = mid <= lo ? '#FF1493' : '#2563EB';
+      g.fillRect(4 + k * bw + 1, base - h, bw - 2, h);
+    });
+    g.strokeStyle = '#2A313D'; g.fillStyle = '#747E8F'; g.font = '10px JetBrains Mono, monospace'; g.textAlign = 'center';
+    g.beginPath(); g.moveTo(4, base + 0.5); g.lineTo(W - 4, base + 0.5); g.stroke();
+    for (var t = -0.1; t <= 0.501; t += 0.1) g.fillText(t.toFixed(1), sx(t), H - 8);
+    g.setLineDash([4, 3]); g.strokeStyle = '#F4F6FA'; g.beginPath(); g.moveTo(sx(P), top - 6); g.lineTo(sx(P), base); g.stroke();
+    g.setLineDash([]); g.strokeStyle = '#FF1493'; g.beginPath(); g.moveTo(sx(lo), top - 6); g.lineTo(sx(lo), base); g.stroke();
+    g.fillStyle = '#F4F6FA'; g.textAlign = 'left'; g.fillText('P ' + f3(P), sx(P) + 5, 12);
+    g.fillStyle = '#FF1493'; g.textAlign = 'right'; g.fillText('lo10 ' + f3(lo), sx(lo) - 5, 12);
+  }
+  $('#lab-p').addEventListener('input', runLab);
+  $('#lab-n').addEventListener('input', runLab);
+  $('#lab-run').addEventListener('click', function () { seed = (seed * 31 + 11) % 100000; runLab(); });
+  $$('[data-n]').forEach(function (b) {
+    b.addEventListener('click', function () { $('#lab-n').value = b.dataset.n; runLab(); });
+  });
+  window.addEventListener('resize', runLab);
+  /* ---------- Command palette and shortcuts ---------- */
+  var pal = $('#pal'), palQ = $('#pal-q'), palList = $('#pal-list'), palSel = 0, palItems = [], palFrom = null;
+  var TAB_NAMES = { home: 'Home', overview: 'Overview', batters: 'Batters', bowlers: 'Bowlers', method: 'Method', roadmap: 'Roadmap' };
+  function allCmds() {
+    var c = [];
+    SECS.forEach(function (t, i) { c.push({ l: 'Go to ' + TAB_NAMES[t], h: 'key ' + (i + 1), run: function () { go(t); } }); });
+    [['ALL', 'All roles'], ['T', 'Top Order'], ['M', 'Middle Order'], ['F', 'Finishers']].forEach(function (r) {
+      c.push({ l: 'Filter batters: ' + r[1], h: 'filter', run: function () { go('batters'); setRole(r[0]); } });
+    });
+    c.push({ l: 'Copy batter leaderboard as CSV', h: 'action', run: copyCsv });
+    c.push({ l: 'Clear head to head', h: 'action', run: function () { cmp = []; renderBatters(); } });
+    BATTERS.forEach(function (b) {
+      c.push({ l: 'Batter · ' + b.name, h: ROLE_LABEL[b.role], run: function () {
+        go('batters'); batState.q = ''; $('#bat-search').value = ''; batState.open = b.name; setRole('ALL');
+        var el = $('tr.row[data-name="' + b.name + '"]'); if (el) el.scrollIntoView({ block: 'center' });
+      } });
+    });
+    BOWLERS.forEach(function (b, i) {
+      c.push({ l: 'Bowler · ' + b.name, h: 'rank ' + (i + 1), run: function () {
+        go('bowlers'); $('#bowl-search').value = b.name; bowlOpen = b.name; renderBowlers();
+        var el = $('#bowl-body tr.row[data-name="' + b.name + '"]'); if (el) el.scrollIntoView({ block: 'center' });
+      } });
+    });
+    return c;
+  }
+  function palRender() {
+    var q = palQ.value.trim().toLowerCase();
+    palItems = allCmds().filter(function (c) { return !q || (c.l + ' ' + c.h).toLowerCase().indexOf(q) >= 0; }).slice(0, 9);
+    palSel = Math.min(palSel, Math.max(palItems.length - 1, 0));
+    palList.innerHTML = palItems.length ? palItems.map(function (c, i) {
+      return '<li class="pal-item" role="option" data-i="' + i + '" aria-selected="' + (i === palSel) + '"><span>' + c.l + '</span><small>' + c.h + '</small></li>';
+    }).join('') : '<li class="pal-item" style="cursor:default"><span style="color:var(--fg-3)">No matches</span></li>';
+  }
+  function palOpen() { palFrom = document.activeElement; pal.hidden = false; palQ.value = ''; palSel = 0; palRender(); palQ.focus(); }
+  function palClose() { pal.hidden = true; if (palFrom && palFrom.focus) palFrom.focus(); }
+  function palRun(i) { var c = palItems[i]; if (!c) return; palClose(); c.run(); }
+  palQ.addEventListener('input', function () { palSel = 0; palRender(); });
+  palList.addEventListener('click', function (e) { var li = e.target.closest('[data-i]'); if (li) palRun(+li.dataset.i); });
+  pal.addEventListener('click', function (e) { if (e.target === pal) palClose(); });
+  $('#open-pal').addEventListener('click', palOpen);
+  document.addEventListener('keydown', function (e) {
+    if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); if (pal.hidden) palOpen(); else palClose(); return; }
+    if (!pal.hidden) {
+      if (e.key === 'Escape') { e.preventDefault(); palClose(); }
+      else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        palSel = (palSel + (e.key === 'ArrowDown' ? 1 : -1) + palItems.length) % Math.max(palItems.length, 1);
+        palRender();
+      } else if (e.key === 'Enter') { e.preventDefault(); palRun(palSel); }
+      return;
+    }
+    if (/^(INPUT|SELECT|TEXTAREA)$/.test(e.target.tagName || '') || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (e.key === '/') { e.preventDefault(); palOpen(); return; }
+    var n = '123456'.indexOf(e.key);
+    if (e.key.length === 1 && n >= 0) go(SECS[n]);
+  });
+  /* ---------- Avatars and podium ---------- */
+  function avatar(n, r, big) {
+    var w = n.split(' ');
+    return '<span class="av ' + r + (big ? ' big' : '') + '" aria-hidden="true">' + (w[0][0] + w[w.length - 1][0]).toUpperCase() + '</span>';
+  }
+  var CLS = ['first', 'second', 'third'];
+  function renderPodium() {
+    $('#podium').innerHTML = BATTERS.slice(0, 3).map(function (b, i) {
+      return '<button type="button" class="panel pod ' + CLS[i] + '" data-name="' + b.name + '">' +
+        '<div class="flex items-center justify-between gap-2"><span class="mono text-[11px]" style="color:var(--fg-3)">#' + (i + 1) + ' BY FLOOR</span><span class="role ' + b.role + '">' + ROLE_LABEL[b.role] + '</span></div>' +
+        '<div class="flex items-center gap-3">' + avatar(b.name, b.role, true) + '<div class="min-w-0"><p class="font-semibold text-[15px]">' + b.name + '</p><p class="mono text-[11px]" style="color:var(--fg-3)">P ' + f3(b.p) + ' · n ' + fmtN(b.n) + '</p></div></div>' +
+        '<div><div class="flex items-baseline justify-between"><span class="eyebrow">lo10 floor</span><span class="mono" style="font-size:30px;font-weight:700;color:var(--pink);letter-spacing:-.03em">' + f3(b.lo) + '</span></div>' +
+        '<div class="meter meter-lg mt-2"><i style="width:' + Math.round(b.ret * 100) + '%;background:linear-gradient(90deg,var(--royal),var(--pink))"></i></div>' +
+        '<p class="mono text-[10.5px] mt-1" style="color:var(--fg-3)">keeps ' + pct(b.ret) + ' of P at the floor</p></div></button>';
+    }).join('');
+  }
+  $('#podium').addEventListener('click', function (e) {
+    var c = e.target.closest('.pod'); if (!c) return;
+    batState.q = ''; $('#bat-search').value = ''; batState.open = c.dataset.name; setRole('ALL');
+    var el = $('tr.row[data-name="' + c.dataset.name + '"]'); if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  });
+  $('#bat-dens').addEventListener('click', function () {
+    var on = this.getAttribute('aria-pressed') !== 'true';
+    this.setAttribute('aria-pressed', on); $('#bat-table').classList.toggle('compact', on);
+  });
+
+  /* ---------- Hero pressure trace ---------- */
+  var REDUCE = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var TR = (function () {
+    var N = 120, r = rng(2026), x = 0, wp = [0.5], li = [0], i;
+    for (i = 1; i <= N; i++) {
+      x = x * 0.97 + (r() < 0.12 ? (r() - 0.5) * 2 : (r() - 0.5) * 0.25);
+      wp.push(1 / (1 + Math.exp(-x)));
+      li.push(Math.abs(wp[i] - wp[i - 1]));
+    }
+    var s = li.slice(1).sort(function (a, b) { return a - b; });
+    return { N: N, wp: wp, li: li, thr: s[Math.floor(0.8 * N)], max: s[N - 1] };
+  })();
+  var trProg = 0, trHov = -1, trRaf = 0, trTok = 0;
+  function drawTrace() {
+    var cv = $('#tr-cv'); if (!cv || !cv.clientWidth) return;
+    var dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+    cv.width = W * dpr; cv.height = H * dpr;
+    var g = cv.getContext('2d'); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    var L = 34, R = 8, T = 10, B = 24, liH = 40, bot = H - B - liH - 12, k;
+    function X(i) { return L + i / TR.N * (W - L - R); }
+    function Y(p) { return T + (1 - p) * (bot - T); }
+    g.font = '10px JetBrains Mono, monospace'; g.textBaseline = 'middle'; g.lineWidth = 1;
+    [0.25, 0.5, 0.75].forEach(function (v) {
+      g.strokeStyle = v === 0.5 ? '#2A313D' : '#1F242D'; g.setLineDash(v === 0.5 ? [4, 4] : []);
+      g.beginPath(); g.moveTo(L, Y(v) + 0.5); g.lineTo(W - R, Y(v) + 0.5); g.stroke();
+      g.fillStyle = '#747E8F'; g.textAlign = 'left'; g.fillText(Math.round(v * 100) + '%', 2, Y(v));
+    });
+    g.setLineDash([]);
+    var last = Math.min(TR.N, Math.floor(trProg * TR.N));
+    if (last >= 1) {
+      var line = g.createLinearGradient(L, 0, W - R, 0); line.addColorStop(0, '#2563EB'); line.addColorStop(1, '#FF1493');
+      var fill = g.createLinearGradient(0, T, 0, bot); fill.addColorStop(0, 'rgba(37,99,235,.3)'); fill.addColorStop(1, 'rgba(37,99,235,0)');
+      g.beginPath(); g.moveTo(X(0), Y(TR.wp[0]));
+      for (k = 1; k <= last; k++) g.lineTo(X(k), Y(TR.wp[k]));
+      g.strokeStyle = line; g.lineWidth = 2; g.lineJoin = 'round'; g.stroke();
+      g.lineTo(X(last), bot); g.lineTo(X(0), bot); g.closePath(); g.fillStyle = fill; g.fill();
+      for (k = 1; k <= last; k++) {
+        var hot = TR.li[k] >= TR.thr, h = TR.li[k] / TR.max * liH;
+        g.fillStyle = hot ? '#FF1493' : '#2A313D'; g.fillRect(X(k) - 1, H - B - h, 2, h);
+        if (hot) { g.beginPath(); g.arc(X(k), Y(TR.wp[k]), 3, 0, 6.283); g.fill(); }
+      }
+      g.fillStyle = '#F4F6FA'; g.beginPath(); g.arc(X(last), Y(TR.wp[last]), 3.5, 0, 6.283); g.fill();
+    }
+    var ty = H - B - TR.thr / TR.max * liH;
+    g.strokeStyle = 'rgba(255,20,147,.55)'; g.lineWidth = 1; g.setLineDash([3, 3]);
+    g.beginPath(); g.moveTo(L, ty); g.lineTo(W - R, ty); g.stroke(); g.setLineDash([]);
+    g.fillStyle = '#FF1493'; g.textAlign = 'right'; g.fillText('tier', L - 4, ty);
+    g.fillStyle = '#747E8F'; g.textAlign = 'center';
+    [0, 30, 60, 90, 120].forEach(function (b) { g.fillText(String(b), X(b), H - 7); });
+    if (trHov >= 0 && trHov <= last) {
+      g.strokeStyle = 'rgba(244,246,250,.35)'; g.beginPath(); g.moveTo(X(trHov), T); g.lineTo(X(trHov), H - B); g.stroke();
+      g.fillStyle = '#F4F6FA'; g.beginPath(); g.arc(X(trHov), Y(TR.wp[trHov]), 4, 0, 6.283); g.fill();
+    }
+  }
+  function readTrace() {
+    var el = $('#tr-read'), k = trHov;
+    if (k < 0 || k > Math.floor(trProg * TR.N)) { el.textContent = 'Hover the trace to inspect a delivery'; return; }
+    el.textContent = 'Ball ' + k + ' · WP ' + Math.round(TR.wp[k] * 100) + '% · LI ' + f3(TR.li[k]) + ' · ' + (TR.li[k] >= TR.thr ? 'pressure tier' : 'below tier');
+    el.style.color = TR.li[k] >= TR.thr ? '#FF1493' : '';
+  }
+  function playTrace() {
+    cancelAnimationFrame(trRaf);
+    var tok = ++trTok, t0 = null;
+    if (REDUCE) { trProg = 1; drawTrace(); return; }
+    trProg = 0;
+    function step(t) {
+      if (t0 === null) t0 = t;
+      trProg = Math.min(1, (t - t0) / 3800); drawTrace();
+      if (trProg < 1) trRaf = requestAnimationFrame(step);
+    }
+    trRaf = requestAnimationFrame(step);
+    setTimeout(function () { if (tok === trTok && trProg < 1) { cancelAnimationFrame(trRaf); trProg = 1; drawTrace(); } }, 5500);
+  }
+  $('#tr-replay').addEventListener('click', playTrace);
+  $('#tr-cv').addEventListener('pointermove', function (e) {
+    var rc = this.getBoundingClientRect();
+    trHov = Math.max(0, Math.min(TR.N, Math.round((e.clientX - rc.left - 34) / (rc.width - 42) * TR.N)));
+    drawTrace(); readTrace();
+  });
+  $('#tr-cv').addEventListener('pointerleave', function () { trHov = -1; drawTrace(); readTrace(); });
+  if (window.ResizeObserver) {
+    new ResizeObserver(drawTrace).observe($('#tr-cv'));
+    new ResizeObserver(runLab).observe($('#lab-cv'));
+  }
+  window.addEventListener('resize', function () { drawTrace(); moveInd(); });
+
+  /* ---------- Chrome: tab indicator, count-up, scroll bar, spotlight, hero buttons ---------- */
+  function moveInd() {
+    spy();
+  }
+  function countUp() {
+    $$('[data-count]').forEach(function (el) {
+      var to = +el.dataset.count, d = +el.dataset.dec || 0, t0 = null;
+      if (REDUCE) return;
+      el.textContent = (0).toFixed(d);
+      function step(t) {
+        if (t0 === null) t0 = t;
+        var k = Math.min(1, (t - t0) / 900); k = 1 - Math.pow(1 - k, 3);
+        el.textContent = (to * k).toFixed(d);
+        if (k < 1) requestAnimationFrame(step);
+      }
+      requestAnimationFrame(step);
+      setTimeout(function () { el.textContent = to.toFixed(d); }, 1300);
+    });
+  }
+  var TILT = '.kpi, .pod, [data-pick], .check', tiltEl = null;
+  function untilt() { if (tiltEl) { tiltEl.style.setProperty('--rx', '0deg'); tiltEl.style.setProperty('--ry', '0deg'); tiltEl = null; } }
+  document.documentElement.addEventListener('pointerleave', untilt);
+  var bar = $('#progress');
+  function scrollBar() { var m = document.documentElement.scrollHeight - window.innerHeight; bar.style.transform = 'scaleX(' + (m > 0 ? Math.min(1, window.scrollY / m) : 0) + ')'; }
+  window.addEventListener('scroll', function () { scrollBar(); spy(); }, { passive: true }); scrollBar();
+  document.addEventListener('pointermove', function (e) {
+    var tl = e.pointerType === 'mouse' && !REDUCE && e.target.closest ? e.target.closest(TILT) : null;
+    if (tiltEl && tiltEl !== tl) untilt();
+    if (tl) {
+      var tb = tl.getBoundingClientRect(); tiltEl = tl;
+      tl.style.setProperty('--ry', ((e.clientX - tb.left) / tb.width - 0.5) * 12 + 'deg');
+      tl.style.setProperty('--rx', -((e.clientY - tb.top) / tb.height - 0.5) * 12 + 'deg');
+    }
+    var p = e.target.closest && e.target.closest('.panel'); if (!p) return;
+    var rc = p.getBoundingClientRect();
+    p.style.setProperty('--mx', (e.clientX - rc.left) + 'px'); p.style.setProperty('--my', (e.clientY - rc.top) + 'px');
+  });
+  $('#cta-lb').addEventListener('click', function () { go('batters'); });
+  $('#cta-lab').addEventListener('click', function () { $('#lab-panel').scrollIntoView({ behavior: REDUCE ? 'auto' : 'smooth', block: 'center' }); });
+  $('#cta-pal').addEventListener('click', palOpen);
+
+  /* ---------- Boot ---------- */
+  renderRoleSummary();
+  renderBatters();
+  renderBowlers();
+  renderStages();
+  renderAC('a');
+  renderReliability();
+  renderSwap('wpa');
+  renderTodos();
+  renderTakeaways();
+  renderPodium();
+  moveInd();
+  runLab();
+  playTrace();
+  countUp();
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(moveInd);
+})();
+</script>
+
+</body></html>

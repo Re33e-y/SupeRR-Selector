@@ -1,0 +1,317 @@
+{
+ "meta": {
+  "matches": 790,
+  "legal_balls": 180008,
+  "thr": 0.025852198703767332,
+  "hi_balls": 36002,
+  "metric": {
+   "bat": "P",
+   "bowl": "P"
+  },
+  "seed": 42
+ },
+ "batters": [
+  {
+   "name": "Vaibhav Sooryavanshi",
+   "role": "T",
+   "p": 0.332,
+   "lo": 0.2,
+   "n": 578,
+   "a": 0.274,
+   "c": 0.058,
+   "p_top10": 0.93
+  },
+  {
+   "name": "Abhishek Sharma",
+   "role": "T",
+   "p": 0.279,
+   "lo": 0.191,
+   "n": 2196,
+   "a": 0.249,
+   "c": 0.029,
+   "p_top10": 0.93
+  },
+  {
+   "name": "Suryakumar Yadav",
+   "role": "M",
+   "p": 0.246,
+   "lo": 0.175,
+   "n": 2638,
+   "a": 0.231,
+   "c": 0.014,
+   "p_top10": 0.9
+  },
+  {
+   "name": "Tim David",
+   "role": "F",
+   "p": 0.229,
+   "lo": 0.15,
+   "n": 1203,
+   "a": 0.183,
+   "c": 0.047,
+   "p_top10": 0.78
+  },
+  {
+   "name": "Pathum Nissanka",
+   "role": "T",
+   "p": 0.188,
+   "lo": 0.121,
+   "n": 1526,
+   "a": 0.127,
+   "c": 0.061,
+   "p_top10": 0.57
+  },
+  {
+   "name": "Heinrich Klaasen",
+   "role": "M",
+   "p": 0.174,
+   "lo": 0.111,
+   "n": 1412,
+   "a": 0.162,
+   "c": 0.013,
+   "p_top10": 0.45
+  },
+  {
+   "name": "Shreyas Iyer",
+   "role": "M",
+   "p": 0.179,
+   "lo": 0.099,
+   "n": 1776,
+   "a": 0.124,
+   "c": 0.056,
+   "p_top10": 0.55
+  },
+  {
+   "name": "Sikandar Raza",
+   "role": "M",
+   "p": 0.166,
+   "lo": 0.093,
+   "n": 961,
+   "a": 0.111,
+   "c": 0.055,
+   "p_top10": 0.41
+  },
+  {
+   "name": "Nicholas Pooran",
+   "role": "T",
+   "p": 0.171,
+   "lo": 0.091,
+   "n": 1905,
+   "a": 0.113,
+   "c": 0.058,
+   "p_top10": 0.48
+  },
+  {
+   "name": "Namboori Tilak Varma",
+   "role": "M",
+   "p": 0.134,
+   "lo": 0.086,
+   "n": 2354,
+   "a": 0.127,
+   "c": 0.006,
+   "p_top10": 0.2
+  }
+ ],
+ "bowlers": [
+  {
+   "name": "Josh Hazlewood",
+   "tag": "Pace · 28% of balls in the death overs",
+   "p": 0.254,
+   "lo": 0.159,
+   "n": 1427,
+   "loRank": 1,
+   "gap": 0.095,
+   "ret": 0.626,
+   "pRank": 1
+  },
+  {
+   "name": "Kuldeep Yadav",
+   "tag": "Spin · 15% of balls in the death overs",
+   "p": 0.213,
+   "lo": 0.151,
+   "n": 1934,
+   "loRank": 2,
+   "gap": 0.062,
+   "ret": 0.709,
+   "pRank": 2
+  },
+  {
+   "name": "Sunil Narine",
+   "tag": "Spin · 14% of balls in the death overs",
+   "p": 0.207,
+   "lo": 0.138,
+   "n": 1485,
+   "loRank": 3,
+   "gap": 0.069,
+   "ret": 0.667,
+   "pRank": 3
+  },
+  {
+   "name": "Rashid Khan",
+   "tag": "Spin · 19% of balls in the death overs",
+   "p": 0.2,
+   "lo": 0.136,
+   "n": 2702,
+   "loRank": 4,
+   "gap": 0.064,
+   "ret": 0.68,
+   "pRank": 4
+  },
+  {
+   "name": "Jasprit Bumrah",
+   "tag": "Pace · 33% of balls in the death overs",
+   "p": 0.197,
+   "lo": 0.125,
+   "n": 1706,
+   "loRank": 5,
+   "gap": 0.072,
+   "ret": 0.635,
+   "pRank": 5
+  },
+  {
+   "name": "Varun Chakravarthy",
+   "tag": "Spin · 15% of balls in the death overs",
+   "p": 0.188,
+   "lo": 0.125,
+   "n": 2108,
+   "loRank": 6,
+   "gap": 0.063,
+   "ret": 0.665,
+   "pRank": 6
+  },
+  {
+   "name": "Krunal Pandya",
+   "tag": "Spin · 7% of balls in the death overs",
+   "p": 0.153,
+   "lo": 0.087,
+   "n": 1261,
+   "loRank": 7,
+   "gap": 0.066,
+   "ret": 0.569,
+   "pRank": 7
+  },
+  {
+   "name": "Mitchell Santner",
+   "tag": "Spin · 11% of balls in the death overs",
+   "p": 0.152,
+   "lo": 0.086,
+   "n": 1725,
+   "loRank": 8,
+   "gap": 0.066,
+   "ret": 0.566,
+   "pRank": 9
+  },
+  {
+   "name": "Bhuvneshwar Kumar",
+   "tag": "Pace · 32% of balls in the death overs",
+   "p": 0.138,
+   "lo": 0.078,
+   "n": 2246,
+   "loRank": 9,
+   "gap": 0.06,
+   "ret": 0.565,
+   "pRank": 10
+  },
+  {
+   "name": "Nathan Ellis",
+   "tag": "Pace · 41% of balls in the death overs",
+   "p": 0.153,
+   "lo": 0.077,
+   "n": 910,
+   "loRank": 10,
+   "gap": 0.076,
+   "ret": 0.503,
+   "pRank": 8
+  }
+ ],
+ "bowler_stats": {
+  "Josh Hazlewood": {
+   "p": 0.254,
+   "lo": 0.159,
+   "n": 1427
+  },
+  "Kuldeep Yadav": {
+   "p": 0.213,
+   "lo": 0.151,
+   "n": 1934
+  },
+  "Sunil Narine": {
+   "p": 0.207,
+   "lo": 0.138,
+   "n": 1485
+  },
+  "Rashid Khan": {
+   "p": 0.2,
+   "lo": 0.136,
+   "n": 2702
+  },
+  "Jasprit Bumrah": {
+   "p": 0.197,
+   "lo": 0.125,
+   "n": 1706
+  },
+  "Varun Chakravarthy": {
+   "p": 0.188,
+   "lo": 0.125,
+   "n": 2108
+  },
+  "Krunal Pandya": {
+   "p": 0.153,
+   "lo": 0.087,
+   "n": 1261
+  },
+  "Mitchell Santner": {
+   "p": 0.152,
+   "lo": 0.086,
+   "n": 1725
+  },
+  "Bhuvneshwar Kumar": {
+   "p": 0.138,
+   "lo": 0.078,
+   "n": 2246
+  },
+  "Nathan Ellis": {
+   "p": 0.153,
+   "lo": 0.077,
+   "n": 910
+  }
+ },
+ "reliability": [
+  {
+   "m": "Batter P",
+   "r": 0.611,
+   "v": "Moderate",
+   "c": "warn"
+  },
+  {
+   "m": "Batter a",
+   "r": 0.648,
+   "v": "Moderate",
+   "c": "warn"
+  },
+  {
+   "m": "Batter c",
+   "r": 0.102,
+   "v": "Do not use",
+   "c": "bad"
+  },
+  {
+   "m": "Bowler P",
+   "r": 0.521,
+   "v": "Moderate",
+   "c": "warn"
+  },
+  {
+   "m": "Bowler a",
+   "r": 0.564,
+   "v": "Moderate",
+   "c": "warn"
+  },
+  {
+   "m": "Bowler c",
+   "r": 0.036,
+   "v": "Do not use",
+   "c": "bad"
+  }
+ ]
+}
