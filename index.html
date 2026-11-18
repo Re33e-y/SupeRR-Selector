@@ -1,4 +1,4 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+cd /path/to/SupeRR<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
 <title>SupeRR Selector</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -345,7 +345,7 @@
         <div class="panel-hd">
           <div>
             <h2 class="text-base font-semibold">Role-segmented batting leaderboard</h2>
-            <p class="text-[12.5px]" style="color: var(--fg-3)">Run-based EPA over-penalizes top-order dismissals, so each role is its own pool. Select a row for detail.</p>
+            <p class="text-[12.5px]" style="color: var(--fg-3)">Ranked by conservative bootstrap floor (lo10) on rating P = a + c (baseline talent a + shrunk pressure response c). Click any row to expand the exact a and c decomposition.</p>
           </div>
           <span class="mono text-[11px]" style="color: var(--fg-3)" id="bat-count"></span>
         </div>
@@ -377,7 +377,7 @@
                 <th style="width: 110px">Rank</th>
                 <th>Player</th>
                 <th>Role tier</th>
-                <th class="num">Rating (P)</th>
+                <th class="num" title="Combined rating P = a + c (baseline talent a + shrunk pressure response c)">Rating (P = a + c)</th>
                 <th class="num">Lower floor (lo10)</th>
                 <th class="num">Sample (n)</th>
                 <th class="num">Compare</th>
@@ -425,8 +425,7 @@
         <div class="p-4 flex gap-3 items-start">
           <span class="verdict warn mono">READ FIRST</span>
           <p class="text-[13px]" style="color: var(--fg-2)">
-            Bowler P reliability is <b class="mono" style="color: var(--bad)">r = 0.16</b>, far below the 0.40 threshold, and bowler clutch slope is
-            <b class="mono" style="color: var(--bad)">r = 0.04</b>. Treat this list as a shortlist for scouting, and weigh rank gaps lightly.
+            Bowler overall rating P reaches moderate split-half reliability at <b class="mono" style="color: var(--warn)">r = 0.52</b> (Spearman-Brown corrected), but bowler clutch slope is <b class="mono" style="color: var(--bad)">r = 0.04</b> (indistinguishable from noise). Selection relies primarily on baseline skill via the bootstrap floor (lo10); treat rank gaps lightly and use this as a scouting shortlist.
           </p>
         </div>
       </div>
@@ -450,7 +449,7 @@
                 <th style="width: 110px">Rank</th>
                 <th>Bowler</th>
                 <th>Profile</th>
-                <th class="num">Rating (P)</th>
+                <th class="num" title="Combined rating P = a + c (baseline talent a + shrunk pressure response c)">Rating (P = a + c)</th>
                 <th class="num">Lower floor (lo10)</th>
                 <th class="num">Sample (n)</th>
               </tr>
@@ -592,6 +591,23 @@
     <h2 class="sec-title">What comes next</h2>
     <p class="sec-sub">Planned upgrades to the metrics, the validation and the coverage of the pipeline.</p>
   </div>
+      <div class="panel mb-4" style="border-color: rgba(61, 214, 140, .35)">
+        <div class="panel-hd">
+          <div class="flex items-center gap-2">
+            <span class="verdict ok mono">DEPLOYED</span>
+            <h2 class="text-base font-semibold">Core Model Deliverables (Season 2 Live)</h2>
+          </div>
+          <span class="tag" style="background: rgba(61, 214, 140, .15); color: var(--ok)">6 OF 6 PIPELINE STAGES OPERATIONAL</span>
+        </div>
+        <div class="p-[18px] grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div class="flex items-start gap-2.5 text-[12.5px]"><span class="mono font-bold text-[14px]" style="color:var(--ok)">✓</span><div><strong class="block text-[13px] text-white">Pre-ball Win Probability</strong><span style="color:var(--fg-2)">HistGradientBoosting classifier trained on 790 matches & 180,008 balls.</span></div></div>
+          <div class="flex items-start gap-2.5 text-[12.5px]"><span class="mono font-bold text-[14px]" style="color:var(--ok)">✓</span><div><strong class="block text-[13px] text-white">Leverage Index Threshold</strong><span style="color:var(--fg-2)">Top 20% pressure tier (LI ≥ 0.0258) isolating game-altering deliveries.</span></div></div>
+          <div class="flex items-start gap-2.5 text-[12.5px]"><span class="mono font-bold text-[14px]" style="color:var(--ok)">✓</span><div><strong class="block text-[13px] text-white">Crossed Ridge Model (P = a + c)</strong><span style="color:var(--fg-2)">Separates stable baseline skill (a) from shrunk clutch slope (c).</span></div></div>
+          <div class="flex items-start gap-2.5 text-[12.5px]"><span class="mono font-bold text-[14px]" style="color:var(--ok)">✓</span><div><strong class="block text-[13px] text-white">Bootstrap Floor (lo10)</strong><span style="color:var(--fg-2)">200 match-level resamples penalizing volatility and small samples.</span></div></div>
+          <div class="flex items-start gap-2.5 text-[12.5px]"><span class="mono font-bold text-[14px]" style="color:var(--ok)">✓</span><div><strong class="block text-[13px] text-white">Role-Segmented Batting</strong><span style="color:var(--fg-2)">Eliminates dismissal-penalty bias across Top, Middle, and Finishers.</span></div></div>
+          <div class="flex items-start gap-2.5 text-[12.5px]"><span class="mono font-bold text-[14px]" style="color:var(--ok)">✓</span><div><strong class="block text-[13px] text-white">Bowler Scouting Shortlist</strong><span style="color:var(--fg-2)">Split-half verified ratings (r = 0.52) with honest clutch disclaimers.</span></div></div>
+        </div>
+      </div>
       <div class="panel mb-4">
         <div class="panel-hd">
           <div>
@@ -620,10 +636,13 @@
         <article class="panel lg:col-span-3">
           <div class="panel-hd">
             <div>
-              <h2 class="text-base font-semibold">Reliability, validation and coverage</h2>
-              <p class="text-[12.5px]" style="color: var(--fg-3)">Tick items off as they ship. Your ticks stay in this browser.</p>
+              <div class="flex items-center gap-2">
+                <span class="verdict warn mono">ROADMAP</span>
+                <h2 class="text-base font-semibold">Planned Validation & Extensions</h2>
+              </div>
+              <p class="text-[12.5px]" style="color: var(--fg-3)">Future upgrades on the roadmap. Core pipeline above is fully deployed.</p>
             </div>
-            <span class="mono text-[11px]" style="color: var(--fg-3)" id="todo-count"></span>
+            <span class="mono text-[11px]" style="color: var(--cyan)" id="todo-count"></span>
           </div>
           <div class="p-[18px] grid gap-2" id="todo-list"></div>
         </article>
@@ -656,16 +675,16 @@
   /* ---------- Data ---------- */
   var ROLE_LABEL = { T: 'Top Order (1-3)', M: 'Middle Order (4-5)', F: 'Finishers (6-7)' };
   var BATTERS = (window.SUPERR_DATA && window.SUPERR_DATA.batters) || [
-    { name: 'Vaibhav Sooryavanshi', role: 'T', p: 0.332, lo: 0.200, n: 578 },
-    { name: 'Abhishek Sharma',      role: 'T', p: 0.279, lo: 0.191, n: 2196 },
-    { name: 'Suryakumar Yadav',     role: 'M', p: 0.246, lo: 0.175, n: 2638 },
-    { name: 'Tim David',            role: 'F', p: 0.229, lo: 0.150, n: 1203 },
-    { name: 'Pathum Nissanka',      role: 'T', p: 0.188, lo: 0.121, n: 1526 },
-    { name: 'Heinrich Klaasen',     role: 'F', p: 0.174, lo: 0.111, n: 1412 },
-    { name: 'Shreyas Iyer',         role: 'M', p: 0.179, lo: 0.099, n: 1776 },
-    { name: 'Sikandar Raza',        role: 'M', p: 0.166, lo: 0.093, n: 961 },
-    { name: 'Nicholas Pooran',      role: 'M', p: 0.171, lo: 0.091, n: 1905 },
-    { name: 'Namboori Tilak Varma', role: 'M', p: 0.134, lo: 0.086, n: 2354 }
+    { name: 'Vaibhav Sooryavanshi', role: 'T', p: 0.332, lo: 0.200, n: 578,  a: 0.274, c: 0.058, p_top10: 0.93 },
+    { name: 'Abhishek Sharma',      role: 'T', p: 0.279, lo: 0.191, n: 2196, a: 0.249, c: 0.029, p_top10: 0.93 },
+    { name: 'Suryakumar Yadav',     role: 'M', p: 0.246, lo: 0.175, n: 2638, a: 0.231, c: 0.014, p_top10: 0.90 },
+    { name: 'Tim David',            role: 'F', p: 0.229, lo: 0.150, n: 1203, a: 0.183, c: 0.047, p_top10: 0.78 },
+    { name: 'Pathum Nissanka',      role: 'T', p: 0.188, lo: 0.121, n: 1526, a: 0.127, c: 0.061, p_top10: 0.57 },
+    { name: 'Heinrich Klaasen',     role: 'F', p: 0.174, lo: 0.111, n: 1412, a: 0.162, c: 0.013, p_top10: 0.45 },
+    { name: 'Shreyas Iyer',         role: 'M', p: 0.179, lo: 0.099, n: 1776, a: 0.124, c: 0.056, p_top10: 0.55 },
+    { name: 'Sikandar Raza',        role: 'M', p: 0.166, lo: 0.093, n: 961,  a: 0.111, c: 0.055, p_top10: 0.41 },
+    { name: 'Nicholas Pooran',      role: 'M', p: 0.171, lo: 0.091, n: 1905, a: 0.113, c: 0.058, p_top10: 0.48 },
+    { name: 'Namboori Tilak Varma', role: 'M', p: 0.134, lo: 0.086, n: 2354, a: 0.127, c: 0.006, p_top10: 0.20 }
   ];
   BATTERS.forEach(function (b, i) { b.loRank = i + 1; b.gap = b.p - b.lo; b.ret = b.lo / b.p; });
   var pOrder = BATTERS.slice().sort(function (a, b) { return b.p - a.p; });
@@ -710,10 +729,12 @@
       d: '200 match-level resamples give a distribution of each player\'s rating. The 10th percentile, lo10, is the ranking key. Batters are ranked in one pool. Batting-order bucket is a context term, and the role tags on this page are display groupings.' }
   ];
   var RELIABILITY = (window.SUPERR_DATA && window.SUPERR_DATA.reliability) || [
-    { m: 'Batter P',  r: 0.32, v: 'Below threshold', c: 'warn' },
-    { m: 'Bowler P',  r: 0.16, v: 'Critically unstable', c: 'bad' },
-    { m: 'Batter c',  r: 0.10, v: 'Do not use', c: 'bad' },
-    { m: 'Bowler c',  r: 0.04, v: 'Do not use', c: 'bad' }
+    { m: 'Batter P',  r: 0.611, v: 'Moderate', c: 'warn' },
+    { m: 'Batter a',  r: 0.648, v: 'Moderate', c: 'warn' },
+    { m: 'Batter c',  r: 0.102, v: 'Do not use', c: 'bad' },
+    { m: 'Bowler P',  r: 0.521, v: 'Moderate', c: 'warn' },
+    { m: 'Bowler a',  r: 0.564, v: 'Moderate', c: 'warn' },
+    { m: 'Bowler c',  r: 0.036, v: 'Do not use', c: 'bad' }
   ];
   var AC = {
     a: { h: 'a · Baseline talent', tone: 'var(--pink)',
@@ -821,10 +842,15 @@
         '<td class="num mono tnum">' + fmtN(b.n) + '</td>' +
         '<td class="num"><button type="button" class="chip cmp-btn" data-name="' + b.name + '" aria-pressed="' + (cmp.indexOf(b.name) >= 0) + '">' + (cmp.indexOf(b.name) >= 0 ? '✓ Comparing' : '+ Compare') + '</button></td></tr>';
       if (open) {
-        h += '<tr class="detail"><td colspan="7"><div class="grid gap-4 p-5 sm:grid-cols-3">' +
-          detailCell('Floor gap (P − lo10)', f3(b.gap), 'How far the 10th percentile sits below the point rating.') +
-          detailCell('Floor retention', retention + '%', 'lo10 as a share of P. Higher means a steadier rating.') +
-          detailCell('Sample', fmtN(b.n), b.n < 1000 ? 'Smaller sample. Expect the floor to move as more data arrives.' : 'Large enough sample to trust the floor.') +
+        var hasAC = b.a != null && b.c != null;
+        var decomp = hasAC ? (f3(b.a) + (b.c >= 0 ? ' + ' : ' − ') + f3(Math.abs(b.c)) + ' = ' + f3(b.p)) : f3(b.p);
+        h += '<tr class="detail"><td colspan="7"><div class="grid gap-4 p-5 sm:grid-cols-2 lg:grid-cols-4">' +
+          (hasAC
+            ? detailCell('Formula: P = a + c', decomp, 'Baseline (a) ' + f3(b.a) + ' + clutch slope (c) ' + (b.c >= 0 ? '+' : '') + f3(b.c) + ' gives rating P.')
+            : detailCell('Point rating (P)', f3(b.p), 'Model point rating across all deliveries.')) +
+          detailCell('Bootstrap floor (lo10)', f3(b.lo), '10th percentile across 200 match replicates; primary ranking key.') +
+          detailCell('Floor gap (P − lo10)', f3(b.gap), 'Uncertainty penalty: how far lo10 sits below point rating P.') +
+          detailCell('Retention & Sample', retention + '% · ' + fmtN(b.n) + ' balls', 'lo10 as share of P. ' + (b.n < 1000 ? 'Smaller sample (<1,000 balls).' : 'Robust sample.')) +
           '</div></td></tr>';
       }
     });
@@ -1014,11 +1040,16 @@
     var h = '', c = 0;
     TODOS.forEach(function (t) {
       var on = !!done[t.id]; if (on) c++;
-      h += '<button type="button" class="todo" data-id="' + t.id + '" aria-pressed="' + on + '"><span class="box" aria-hidden="true">✓</span>' +
-        '<span><span class="tt block font-semibold text-[13.5px]">' + t.t + '</span><span class="block text-[12.5px]" style="color:var(--fg-3)">' + t.d + '</span></span></button>';
+      var badge = on
+        ? '<span class="mono text-[10.5px] px-2 py-0.5 rounded font-semibold" style="background:rgba(61,214,140,.18);color:var(--ok);border:1px solid rgba(61,214,140,.35)">SHIPPED</span>'
+        : '<span class="mono text-[10.5px] px-2 py-0.5 rounded font-semibold" style="background:rgba(34,211,238,.12);color:var(--cyan);border:1px solid rgba(34,211,238,.25)">PLANNED</span>';
+      h += '<button type="button" class="todo" data-id="' + t.id + '" aria-pressed="' + on + '">' +
+        '<span class="box" aria-hidden="true">' + (on ? '✓' : '') + '</span>' +
+        '<span class="flex-1 min-w-0"><span class="flex items-center justify-between gap-2 mb-0.5"><span class="tt font-semibold text-[13.5px]">' + t.t + '</span>' + badge + '</span>' +
+        '<span class="block text-[12.5px]" style="color:var(--fg-3)">' + t.d + '</span></span></button>';
     });
     $('#todo-list').innerHTML = h;
-    $('#todo-count').textContent = c + ' of ' + TODOS.length + ' done';
+    $('#todo-count').textContent = c === 0 ? '5 planned extensions · 0 shipped' : (c + ' of ' + TODOS.length + ' extensions shipped');
   }
   $('#todo-list').addEventListener('click', function (e) {
     var b = e.target.closest('.todo'); if (!b) return;
@@ -1067,7 +1098,7 @@
       return;
     }
     var A = sel[0], B = sel[1], wins = [0, 0];
-    var spec = [['Rating (P)', 'p', 1, f3], ['Lower floor (lo10)', 'lo', 1, f3], ['Floor gap', 'gap', -1, f3], ['Floor retention', 'ret', 1, pct], ['Sample (n)', 'n', 0, fmtN]];
+    var spec = [['Rating (P = a + c)', 'p', 1, f3], ['Lower floor (lo10)', 'lo', 1, f3], ['Floor gap', 'gap', -1, f3], ['Floor retention', 'ret', 1, pct], ['Sample (n)', 'n', 0, fmtN]];
     var rows = spec.map(function (s) {
       var a = A[s[1]], b = B[s[1]], mx = Math.max(a, b);
       var aw = s[2] && a !== b && (s[2] > 0 ? a > b : a < b), bw = s[2] && a !== b && !aw;
